@@ -7,7 +7,7 @@ Events.events = [];
  * @param callback {function} callback function
  */
 Events.on = (event, callback) => {
-    Events.events.push(event.toLowerCase(), callback);
+    Events.events.push(event, callback);
 };
 
 /**
@@ -19,10 +19,10 @@ Events.fire = (...arguments) => {
     let args = [];
     for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
     // Find event listeners, and support pseudo-event `catchAll`
-    let event = args[0].toLowerCase();
+    let event = args[0];
     for (let j = 0; j <= Events.events.length; j += 2) {
         if (Events.events[j] === event) Events.events[j + 1].apply(Events, args.slice(1));
-        if (Events.events[j] === 'catchall') Events.events[j + 1].apply(null, args);
+        if (Events.events[j] === 'catchAll') Events.events[j + 1].apply(null, args);
     }
 };
 

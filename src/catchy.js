@@ -5,8 +5,7 @@ const Events = require('./events');
 let events = [];
 let defaultOpts = {
     writeFile: {
-        path: './',
-        filename: 'day'
+        folderPath: './errors'
     }
 };
 
@@ -31,9 +30,19 @@ function catchy(opts){
  */
 catchy.error = (err) => {
     Events.fire('error', err);
-    console.log('INTERN');
-    console.log(catchy.opts);
-    fs.writeFile(catchy.opts.writeFile.path, `Caught exception: ${err}\n`);
+    Events.fire(`type${err.name}`, err);
+
+    Events.fire('beforeLog', err);
+
+    let folderPath = catchy.opts.writeFile.folderPath;
+    let filename = (new Date()).toLocaleDateString();
+    let content = `${(new Date()).toLocaleString()} ${err.stack}\n---------------------------------------------\n`;
+
+    if(!fs.existsSync(folderPath))
+        fs.mkdirSync(folderPath);
+    fs.appendFileSync(`${folderPath}/${filename}`, content);
+
+    Events.fire('afterLog', err);
 };
 
 /**

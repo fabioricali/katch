@@ -1,12 +1,25 @@
 const assert = require('assert');
 process.removeAllListeners('uncaughtException');
 
+const catchy = require('../index');
+
+catchy.on('error', err => {
+    console.log(err.stack);
+});
+
 describe('catchy', () =>{
     let listeners ;
 
     beforeEach(() => {
         listeners = process.listeners('uncaughtException');
         process.removeAllListeners('uncaughtException');
+
+        catchy({
+            writeFile: {
+                folderPath: './test/textures/errors'
+            }
+        });
+
     });
 
     afterEach(() => {
@@ -15,24 +28,86 @@ describe('catchy', () =>{
         });
     });
 
-    it('test', (done) => {
+    it('Error', done => {
 
-        const catchy = require('../index');
-
-        catchy({
-            writeFile: {
-                path: './test/textures/errors.err'
-            }
-        });
-
-        catchy.on('error', (err) => {
-            console.log(err);
-            assert.equal(true, true);
+        catchy.on('typeError', () => {
             done();
         });
 
         setImmediate(()=>{
-            throw new Error('aaaa');
+            throw new Error('MyError');
+        });
+
+    });
+
+    it('RangeError', done => {
+
+        catchy.on('typeRangeError', () => {
+            done();
+        });
+
+        setImmediate(()=>{
+            throw new RangeError('MyRangeError');
+        });
+
+    });
+
+    it('TypeError', done => {
+
+        catchy.on('typeTypeError', () => {
+            done();
+        });
+
+        setImmediate(()=>{
+            throw new TypeError('MyTypeError');
+        });
+
+    });
+
+    it('ReferenceError', done => {
+
+        catchy.on('typeReferenceError', () => {
+            done();
+        });
+
+        setImmediate(()=>{
+            throw new ReferenceError('MyReferenceError');
+        });
+
+    });
+
+    it('SyntaxError', done => {
+
+        catchy.on('typeSyntaxError', () => {
+            done();
+        });
+
+        setImmediate(()=>{
+            throw new SyntaxError('MySyntaxError');
+        });
+
+    });
+
+    it('EvalError', done => {
+
+        catchy.on('typeEvalError', () => {
+            done();
+        });
+
+        setImmediate(()=>{
+            throw new EvalError('MyEvalError');
+        });
+
+    });
+
+    it('URIError', done => {
+
+        catchy.on('typeURIError', () => {
+            done();
+        });
+
+        setImmediate(()=>{
+            throw new URIError('MyURIError');
         });
 
     });
