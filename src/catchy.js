@@ -1,6 +1,7 @@
-const fs = require('fs');
 const Helpers = require('./helpers');
 const Events = require('./events');
+const sha256 = require('./sha256');
+const fs = require('fs');
 
 let events = [];
 let defaultOpts = {
@@ -19,24 +20,36 @@ function catchy(opts){
         catchy.opts = Helpers.defaults(opts, defaultOpts);
     }
 
-    process.on('uncaughtException', (err) => {
-        catchy.error(err);
-    });
+    if(Helpers.isCommonjsEnv()) {
+        process.on('uncaughtException', (err) => {
+            catchy.captureError(err);
+        });
+    }else if(Helpers.isBrowserEnv()) {
+        //todo see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            catchy.captureError(error);
+            return false;
+        }
+    }else{
+        throw new Error('Catchy init error');
+    }
 }
 
 /**
  * Catch error
  * @param err {error} error object
  */
-catchy.error = (err) => {
+catchy.captureError = (err) => {
     Events.fire('error', err);
     Events.fire(`type${err.name}`, err);
 
     Events.fire('beforeLog', err);
 
     let folderPath = catchy.opts.writeFile.folderPath;
-    let filename = (new Date()).toLocaleDateString();
-    let content = `${(new Date()).toLocaleString()} ${err.stack}\n---------------------------------------------\n`;
+    let filename = Helpers.getLocaleISODate('date');
+    let errorStack = err.stack;
+    let hash = sha256(errorStack);
+    let content = `${Helpers.getLocaleISODate()} ${hash}\n${errorStack}\n------------------------------------------------------------------------------------\n`;
 
     if(!fs.existsSync(folderPath))
         fs.mkdirSync(folderPath);

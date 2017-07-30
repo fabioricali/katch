@@ -12,17 +12,17 @@ Events.on = (event, callback) => {
 
 /**
  * Fire event
- * @param arguments {*}
+ * @param args {*}
  */
-Events.fire = (...arguments) => {
+Events.fire = (...args) => {
     // `arguments` is an object, not array, in FF, so:
-    let args = [];
-    for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+    let _args = [];
+    for (let i = 0; i < args.length; i++) _args.push(args[i]);
     // Find event listeners, and support pseudo-event `catchAll`
-    let event = args[0];
+    let event = _args[0];
     for (let j = 0; j <= Events.events.length; j += 2) {
-        if (Events.events[j] === event) Events.events[j + 1].apply(Events, args.slice(1));
-        if (Events.events[j] === 'catchAll') Events.events[j + 1].apply(null, args);
+        if (Events.events[j] === event) Events.events[j + 1].apply(Events, _args.slice(1));
+        if (Events.events[j] === 'catchAll') Events.events[j + 1].apply(null, _args);
     }
 };
 
