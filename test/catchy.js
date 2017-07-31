@@ -4,6 +4,8 @@ process.removeAllListeners('uncaughtException');
 const catchy = require('../index');
 
 catchy.on('error', err => {
+    console.log('Catchy error');
+    console.log(err.message);
     console.log(err.stack);
 });
 
@@ -66,7 +68,8 @@ describe('catchy', () =>{
 
     it('ReferenceError', done => {
 
-        catchy.on('typeReferenceError', () => {
+        catchy.on('typeReferenceError', (err) => {
+            if(err.message === 'MyReferenceError')
             done();
         });
 
@@ -110,5 +113,17 @@ describe('catchy', () =>{
             throw new URIError('MyURIError');
         });
 
+    });
+
+    it('func is not defined', done => {
+
+        catchy.on('typeReferenceError', (err) => {
+            if(err.message === 'func is not defined')
+                done();
+        });
+
+        setImmediate(()=>{
+            new func();
+        });
     });
 });
