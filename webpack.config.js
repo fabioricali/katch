@@ -14,8 +14,8 @@ const banner = `
 module.exports = {
     entry: './index.js',
     output: {
-        filename: './dist/catchy.min.js',
-        library: 'catchy',
+        filename: './dist/katch.min.js',
+        library: 'katch',
         umdNamedDefine: true
     },
     resolve: {
@@ -50,7 +50,7 @@ module.exports = {
             },
             componentsOptions: {
                 InjectAsComment: {
-                    tag: 'Catchy Build version: {version}'
+                    tag: 'katch Build version: {version}'
                 }
             }
         }),

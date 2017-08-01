@@ -1,1 +1,1 @@
-module.exports = require('./src/catchy');
+module.exports = require('./src/katch');

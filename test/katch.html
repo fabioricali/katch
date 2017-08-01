@@ -21,16 +21,16 @@
     }
 
 </script>
-<script src="../dist/catchy.js"></script>
-<script src="catchy.js"></script>
+<script src="../dist/katch.js"></script>
+<script src="katch.js"></script>
 <script>
     mocha.checkLeaks();
     mocha.globals(['jQuery']);
     mocha.run();
 
-    catchy();
-    catchy.on('error', err => {
-        console.log('Catchy error');
+    katch();
+    katch.on('error', err => {
+        console.log('katch error');
         console.log(err.message);
         console.log(err.stack);
     });

@@ -1,5 +1,5 @@
 {
-    "name": "catchy",
+    "name": "katch",
     "version": "0.0.23",
     "description": "Simple module that capture errors and log it. Works both server and browser.",
     "main": "index.js",
@@ -38,7 +38,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/fabioricali/catchy"
+        "url": "https://github.com/fabioricali/katch"
     },
     "dependencies": {
         "dateformat": "^2.0.0"

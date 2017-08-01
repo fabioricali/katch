@@ -3,16 +3,16 @@ if (typeof process === 'object') {
     process.removeAllListeners('uncaughtException');
     process.setMaxListeners(0);
 
-    global.catchy = require('../index');
+    global.katch = require('../index');
 
-    catchy.on('error', err => {
-        console.log('Catchy error');
+    katch.on('error', err => {
+        console.log('katch error');
         console.log(err.message);
         console.log(err.stack);
     });
 }
 
-describe('catchy', () => {
+describe('katch', () => {
 
     let listeners;
     if (typeof process === 'object') {
@@ -20,7 +20,7 @@ describe('catchy', () => {
             listeners = process.listeners('uncaughtException');
             process.removeAllListeners('uncaughtException');
 
-            catchy({
+            katch({
                 writeFile: {
                     folderPath: './test/textures/errors'
                 }
@@ -37,7 +37,7 @@ describe('catchy', () => {
 
     it('Error', done => {
 
-        catchy.on('typeError', () => {
+        katch.on('typeError', () => {
             done();
         });
 
@@ -49,7 +49,7 @@ describe('catchy', () => {
 
     it('RangeError', done => {
 
-        catchy.on('typeRangeError', () => {
+        katch.on('typeRangeError', () => {
             done();
         });
 
@@ -61,7 +61,7 @@ describe('catchy', () => {
 
     it('TypeError', done => {
 
-        catchy.on('typeTypeError', () => {
+        katch.on('typeTypeError', () => {
             done();
         });
 
@@ -73,7 +73,7 @@ describe('catchy', () => {
 
     it('ReferenceError', done => {
 
-        catchy.on('typeReferenceError', (err) => {
+        katch.on('typeReferenceError', (err) => {
             if (err.message === 'MyReferenceError')
                 done();
         });
@@ -86,7 +86,7 @@ describe('catchy', () => {
 
     it('SyntaxError', done => {
 
-        catchy.on('typeSyntaxError', () => {
+        katch.on('typeSyntaxError', () => {
             done();
         });
 
@@ -98,7 +98,7 @@ describe('catchy', () => {
 
     it('EvalError', done => {
 
-        catchy.on('typeEvalError', () => {
+        katch.on('typeEvalError', () => {
             done();
         });
 
@@ -110,7 +110,7 @@ describe('catchy', () => {
 
     it('URIError', done => {
 
-        catchy.on('typeURIError', () => {
+        katch.on('typeURIError', () => {
             done();
         });
 
@@ -122,7 +122,7 @@ describe('catchy', () => {
 
     it('func is not defined', done => {
 
-        catchy.on('typeReferenceError', (err) => {
+        katch.on('typeReferenceError', (err) => {
             if (err.message === 'func is not defined')
                 done();
         });
@@ -132,24 +132,24 @@ describe('catchy', () => {
         });
     });
 
-    it('catchy.captureError', done => {
+    it('katch.captureError', done => {
 
-        catchy.on('typeReferenceError', (err) => {
+        katch.on('typeReferenceError', (err) => {
             if (err.message === 'capture error')
                 done();
         });
 
-        catchy.captureError(new ReferenceError('capture error'));
+        katch.captureError(new ReferenceError('capture error'));
     });
 
-    it('catchy.wrap', done => {
+    it('katch.wrap', done => {
 
-        catchy.on('typeReferenceError', (err) => {
+        katch.on('typeReferenceError', (err) => {
             if (err.message === 'func2 is not defined')
                 done();
         });
 
-        catchy.wrap(() => {
+        katch.wrap(() => {
             func2();
         });
     });

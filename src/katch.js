@@ -10,19 +10,19 @@ let defaultOpts = {
 };
 
 /**
- * Catchy
+ * katch
  * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
  * @param opts {object} options object
  */
-function catchy(opts) {
+function katch(opts) {
 
     if (typeof opts === 'object') {
-        catchy.opts = Helpers.defaults(opts, defaultOpts);
+        katch.opts = Helpers.defaults(opts, defaultOpts);
     }
 
     if (Helpers.isBrowser()) {
         window.onerror = function (msg, url, lineNo, columnNo, error) {
-            catchy.captureError(error, {
+            katch.captureError(error, {
                 message: msg,
                 url: url,
                 lineNo: lineNo,
@@ -32,7 +32,7 @@ function catchy(opts) {
         }
     } else {
         process.on('uncaughtException', (error) => {
-            catchy.captureError(error);
+            katch.captureError(error);
         });
     }
 }
@@ -42,7 +42,7 @@ function catchy(opts) {
  * @param error {Error} error object
  * @param params {Object} optional params object
  */
-catchy.captureError = (error, params = {}) => {
+katch.captureError = (error, params = {}) => {
     Events.fire('error', error, params);
     Events.fire(`type${error.name}`, error, params);
     Events.fire('beforeLog', error, params);
@@ -56,14 +56,14 @@ catchy.captureError = (error, params = {}) => {
 
     if (Helpers.isBrowser()) {
 
-        let logName = 'catchy-' + Helpers.getLocaleISODate('date');
+        let logName = 'katch-' + Helpers.getLocaleISODate('date');
         let logAtDay = JSON.parse(localStorage.getItem(logName)) || [];
         logAtDay.push(logObj);
         localStorage.setItem(logName, JSON.stringify(logAtDay));
 
     } else if (Helpers.isServer()) {
 
-        let folderPath = catchy.opts.writeFile.folderPath;
+        let folderPath = katch.opts.writeFile.folderPath;
         let filename = Helpers.getLocaleISODate('date') + '.log';
         let separator = '------------------------------------------------------------------------------------';
         let fileContent = `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
@@ -71,7 +71,7 @@ catchy.captureError = (error, params = {}) => {
         /*
         If writeFile is falsy do not write
          */
-        if(catchy.opts.writeFile) {
+        if(katch.opts.writeFile) {
             if (!fs.existsSync(folderPath))
                 fs.mkdirSync(folderPath);
             fs.appendFileSync(`${folderPath}/${filename}`, fileContent);
@@ -85,11 +85,11 @@ catchy.captureError = (error, params = {}) => {
  * Wrapper function
  * @type {function(*)}
  */
-catchy.wrap = (func => {
+katch.wrap = (func => {
    try {
        func();
    } catch (e) {
-       catchy.captureError(e);
+       katch.captureError(e);
    }
 });
 
@@ -98,6 +98,6 @@ catchy.wrap = (func => {
  * @param event {string} event name
  * @param callback {function} callback function
  */
-catchy.on = Events.on;
+katch.on = Events.on;
 
-module.exports = catchy;
+module.exports = katch;
