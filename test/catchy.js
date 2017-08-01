@@ -1,34 +1,39 @@
-const assert = require('assert');
-process.removeAllListeners('uncaughtException');
+if (typeof process === 'object') {
+    const assert = require('assert');
+    process.removeAllListeners('uncaughtException');
+    process.setMaxListeners(0);
 
-const catchy = require('../index');
+    global.catchy = require('../index');
 
-catchy.on('error', err => {
-    console.log('Catchy error');
-    console.log(err.message);
-    console.log(err.stack);
-});
+    catchy.on('error', err => {
+        console.log('Catchy error');
+        console.log(err.message);
+        console.log(err.stack);
+    });
+}
 
-describe('catchy', () =>{
-    let listeners ;
+describe('catchy', () => {
 
-    beforeEach(() => {
-        listeners = process.listeners('uncaughtException');
-        process.removeAllListeners('uncaughtException');
+    let listeners;
+    if (typeof process === 'object') {
+        beforeEach(() => {
+            listeners = process.listeners('uncaughtException');
+            process.removeAllListeners('uncaughtException');
 
-        catchy({
-            writeFile: {
-                folderPath: './test/textures/errors'
-            }
+            catchy({
+                writeFile: {
+                    folderPath: './test/textures/errors'
+                }
+            });
+
         });
 
-    });
-
-    afterEach(() => {
-        listeners.forEach(function(listener) {
-            process.on('uncaughtException', listener);
+        afterEach(() => {
+            listeners.forEach(function (listener) {
+                process.on('uncaughtException', listener);
+            });
         });
-    });
+    }
 
     it('Error', done => {
 
@@ -36,7 +41,7 @@ describe('catchy', () =>{
             done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new Error('MyError');
         });
 
@@ -48,7 +53,7 @@ describe('catchy', () =>{
             done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new RangeError('MyRangeError');
         });
 
@@ -60,7 +65,7 @@ describe('catchy', () =>{
             done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new TypeError('MyTypeError');
         });
 
@@ -69,11 +74,11 @@ describe('catchy', () =>{
     it('ReferenceError', done => {
 
         catchy.on('typeReferenceError', (err) => {
-            if(err.message === 'MyReferenceError')
-            done();
+            if (err.message === 'MyReferenceError')
+                done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new ReferenceError('MyReferenceError');
         });
 
@@ -85,7 +90,7 @@ describe('catchy', () =>{
             done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new SyntaxError('MySyntaxError');
         });
 
@@ -97,7 +102,7 @@ describe('catchy', () =>{
             done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new EvalError('MyEvalError');
         });
 
@@ -109,7 +114,7 @@ describe('catchy', () =>{
             done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             throw new URIError('MyURIError');
         });
 
@@ -118,12 +123,34 @@ describe('catchy', () =>{
     it('func is not defined', done => {
 
         catchy.on('typeReferenceError', (err) => {
-            if(err.message === 'func is not defined')
+            if (err.message === 'func is not defined')
                 done();
         });
 
-        setImmediate(()=>{
+        setImmediate(() => {
             new func();
+        });
+    });
+
+    it('catchy.captureError', done => {
+
+        catchy.on('typeReferenceError', (err) => {
+            if (err.message === 'capture error')
+                done();
+        });
+
+        catchy.captureError(new ReferenceError('capture error'));
+    });
+
+    it('catchy.wrap', done => {
+
+        catchy.on('typeReferenceError', (err) => {
+            if (err.message === 'func2 is not defined')
+                done();
+        });
+
+        catchy.wrap(() => {
+            func2();
         });
     });
 });
