@@ -1,3 +1,4 @@
+const dateformat = require('dateformat');
 let Helpers = {};
 
 /**
@@ -26,35 +27,20 @@ Helpers.defaults = (opts, defaultOpts) => {
  * @returns {*}
  */
 Helpers.getLocaleISODate = (part = 'all') => {
-    function pad(n) {
-        if(n < 10)
-            return `0${n}`;
-        else
-            return n;
-    }
-
-    let d = (new Date()).toLocaleString('ISO').split(' ');
-
-    let time = d[1];
-    let date = d[0].split('-');
-    let Y = date[0];
-    let M = pad(date[1]);
-    let D = pad(date[2]);
-    date = Y + '-' + M + '-' + D;
-
+    const now = new Date();
     if(part === 'date')
-        return date;
+        return dateformat(now, 'yyyy-mm-dd');
     else if(part === 'time')
-        return time;
+        return dateformat(now, 'HH:MM:SS');
     else
-        return `${date} ${time}`;
+        return dateformat(now, 'yyyy-mm-dd HH:MM:ss');
 };
 
 /**
  * Check if server environment
  * @returns {boolean}
  */
-Helpers.isCommonjsEnv = () => {
+Helpers.isServer = () => {
     return typeof process !== 'undefined';
 };
 
@@ -62,7 +48,7 @@ Helpers.isCommonjsEnv = () => {
  * Check if browser environment
  * @returns {boolean}
  */
-Helpers.isBrowserEnv = () => {
+Helpers.isBrowser = () => {
     return typeof window !== 'undefined';
 };
 

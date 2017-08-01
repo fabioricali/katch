@@ -1,6 +1,6 @@
 {
     "name": "catchy",
-    "version": "0.0.10",
+    "version": "0.0.19",
     "description": "Error handling",
     "main": "index.js",
     "scripts": {
@@ -30,5 +30,7 @@
         "type": "git",
         "url": "https://github.com/fabioricali/catchy"
     },
-    "dependencies": {}
+    "dependencies": {
+        "dateformat": "^2.0.0"
+    }
 }

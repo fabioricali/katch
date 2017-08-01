@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Catchy</title>
-    <script>
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
-            console.log('msg', msg);
-            console.log('url', url);
-            console.log('lineNo', lineNo);
-            console.log('columnNo', columnNo);
-            console.log('error', error);
-        };
+    <script src="../dist/catchy.js"></script>
+    <style>
+        body{
+            font-family: monospace;
+        }
+    </style>
 
-        setTimeout(function () {
-            new func();
-        }, 2000);
-    </script>
 </head>
 <body>
-
+<div id="log"></div>
+<script>
+    catchy();
+    func();
+</script>
 </body>
 </html>

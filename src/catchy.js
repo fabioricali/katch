@@ -3,7 +3,6 @@ const Events = require('./events');
 const sha256 = require('./sha256');
 const fs = require('fs');
 
-let events = [];
 let defaultOpts = {
     writeFile: {
         folderPath: './errors'
@@ -20,16 +19,21 @@ function catchy(opts){
         catchy.opts = Helpers.defaults(opts, defaultOpts);
     }
 
-    if(Helpers.isCommonjsEnv()) {
-        process.on('uncaughtException', (err) => {
-            catchy.captureError(err);
-        });
-    }else if(Helpers.isBrowserEnv()) {
+    if(Helpers.isBrowser()) {
         //todo see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
         window.onerror = function (msg, url, lineNo, columnNo, error) {
-            catchy.captureError(error);
+            catchy.captureError(error, {
+                message: msg,
+                url: url,
+                lineNo: lineNo,
+                columnNo: columnNo
+            });
             return false;
         }
+    }else if(Helpers.isServer()) {
+        process.on('uncaughtException', (error) => {
+            catchy.captureError(error);
+        });
     }else{
         throw new Error('Catchy init error');
     }
@@ -37,25 +41,39 @@ function catchy(opts){
 
 /**
  * Catch error
- * @param err {error} error object
+ * @param error {Error} error object
+ * @param params {Object} optional params object
  */
-catchy.captureError = (err) => {
-    Events.fire('error', err);
-    Events.fire(`type${err.name}`, err);
+catchy.captureError = (error, params = {}) => {
+    Events.fire('error', error, params);
+    Events.fire(`type${error.name}`, error, params);
 
-    Events.fire('beforeLog', err);
+    Events.fire('beforeLog', error, params);
 
-    let folderPath = catchy.opts.writeFile.folderPath;
-    let filename = Helpers.getLocaleISODate('date');
-    let errorStack = err.stack;
-    let hash = sha256(errorStack);
-    let content = `${Helpers.getLocaleISODate()} ${hash}\n${errorStack}\n------------------------------------------------------------------------------------\n`;
+    let logObj = {
+        time: Helpers.getLocaleISODate(),
+        hash: sha256(error.stack),
+        error: error.stack,
+        params: params
+    };
+    if(Helpers.isBrowser()) {
+        let logName = 'catchy-'+Helpers.getLocaleISODate('date');
+        let logAtDay = JSON.parse(localStorage.getItem(logName)) || [];
+        logAtDay.push(logObj);
+        localStorage.setItem(logName, JSON.stringify(logAtDay));
+    } else if(Helpers.isServer()) {
 
-    if(!fs.existsSync(folderPath))
-        fs.mkdirSync(folderPath);
-    fs.appendFileSync(`${folderPath}/${filename}`, content);
+        let folderPath = catchy.opts.writeFile.folderPath;
+        let filename = Helpers.getLocaleISODate('date') + '.log';
+        let separator = '------------------------------------------------------------------------------------';
+        let fileContent =  `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
 
-    Events.fire('afterLog', err);
+        if (!fs.existsSync(folderPath))
+            fs.mkdirSync(folderPath);
+        fs.appendFileSync(`${folderPath}/${filename}`, fileContent);
+    }
+
+    Events.fire('afterLog', error, params);
 };
 
 /**
