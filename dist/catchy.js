@@ -1,4 +1,4 @@
-// [AIV]  Catchy Build version: 0.0.21  
+// [AIV]  Catchy Build version: 0.0.23  
  var catchy =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
