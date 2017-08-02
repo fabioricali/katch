@@ -3,7 +3,7 @@ const Events = require('./events');
 const sha256 = require('./sha256');
 const fs = require('fs');
 
-let defaultOpts = {
+let defaultConfig = {
     writeFile: {
         folderPath: './errors'
     }
@@ -17,7 +17,7 @@ let defaultOpts = {
 function katch(opts) {
 
     if (typeof opts === 'object') {
-        katch.opts = Helpers.defaults(opts, defaultOpts);
+        katch.config = Helpers.defaults(opts, defaultConfig);
     }
 
     if (Helpers.isBrowser()) {
@@ -36,6 +36,12 @@ function katch(opts) {
         });
     }
 }
+
+/**
+ * Config params
+ * @type {{}}
+ */
+katch.config = {};
 
 /**
  * Catch error
@@ -63,7 +69,7 @@ katch.captureError = (error, params = {}) => {
 
     } else if (Helpers.isServer()) {
 
-        let folderPath = katch.opts.writeFile.folderPath;
+        let folderPath = katch.config.writeFile.folderPath;
         let filename = Helpers.getLocaleISODate('date') + '.log';
         let separator = '------------------------------------------------------------------------------------';
         let fileContent = `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
@@ -71,7 +77,7 @@ katch.captureError = (error, params = {}) => {
         /*
         If writeFile is falsy do not write
          */
-        if(katch.opts.writeFile) {
+        if(katch.config.writeFile) {
             if (!fs.existsSync(folderPath))
                 fs.mkdirSync(folderPath);
             fs.appendFileSync(`${folderPath}/${filename}`, fileContent);
@@ -83,13 +89,13 @@ katch.captureError = (error, params = {}) => {
 
 /**
  * Wrapper function
- * @type {function(*)}
+ * @type {function(*, *=)}
  */
-katch.wrap = (func => {
+katch.wrap = ((func, params = {}) => {
    try {
        func();
    } catch (e) {
-       katch.captureError(e);
+       katch.captureError(e, params);
    }
 });
 

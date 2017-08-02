@@ -10,7 +10,7 @@ npm install katch --save
 
 Add in top of your entry point app
 
-## Example
+## Basic usage
 ```javascript
 require('katch')();
 // others modules
@@ -18,7 +18,7 @@ require('katch')();
 
 ### Browser
 
-Add before others script
+Add before others scripts
 
 #### Local
 ```html
@@ -38,23 +38,63 @@ Add before others script
 <script>katch()</script>
 ```
 
-### Options
+### Configuration
 ```javascript
 const katch = require('katch');
 
-const opt = {
+const config = {
     // works only in server environment, in browser store to localStorage
     writeFile: {
         folderPath: './errors'
     }
 };
 
-katch(opt);
+katch(config);
 
 // events
 
 katch.on('error', (error, params) => {
-    console.log(error, params)
+    console.log(error, params);
+});
+```
+
+#### Capture manually
+
+```javascript
+const katch = require('katch');
+
+katch.config = {
+    writeFile: false
+};
+
+try {
+    foo();
+    bar();
+} catch (e) {
+    katch.captureError(e, {
+        customParam: 'hello horror'
+    });
+}
+
+//... or use wrap method
+
+katch.wrap(() => {
+    foo();
+    bar();
+}, {
+    customParam: 'hello horror'
 });
 
+katch.on('error', (error, params) => {
+    console.log(error, params);
+});
 ```
+
+## Changelog
+You can view the changelog <a target="_blank" href="https://github.com/fabioricali/katch/blob/master/CHANGELOG.md">here</a>
+
+## License
+beJS is open-sourced software licensed under the <a target="_blank" href="http://opensource.org/licenses/MIT">MIT license</a>
+
+## Author
+<a target="_blank" href="http://rica.li">Fabio Ricali</a>

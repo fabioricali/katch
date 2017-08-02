@@ -295,7 +295,7 @@ var defaultOpts = {
 function katch(opts) {
 
     if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
-        katch.opts = Helpers.defaults(opts, defaultOpts);
+        katch.config = Helpers.defaults(opts, defaultOpts);
     }
 
     if (Helpers.isBrowser()) {
@@ -342,7 +342,7 @@ katch.captureError = function (error) {
         localStorage.setItem(logName, JSON.stringify(logAtDay));
     } else if (Helpers.isServer()) {
 
-        var folderPath = katch.opts.writeFile.folderPath;
+        var folderPath = katch.config.writeFile.folderPath;
         var filename = Helpers.getLocaleISODate('date') + '.log';
         var separator = '------------------------------------------------------------------------------------';
         var fileContent = logObj.time + ' ' + logObj.hash + '\n' + logObj.error + '\n' + separator + '\n';
@@ -350,7 +350,7 @@ katch.captureError = function (error) {
         /*
         If writeFile is falsy do not write
          */
-        if (katch.opts.writeFile) {
+        if (katch.config.writeFile) {
             if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
             fs.appendFileSync(folderPath + '/' + filename, fileContent);
         }

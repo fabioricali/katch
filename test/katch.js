@@ -142,15 +142,44 @@ describe('katch', () => {
         katch.captureError(new ReferenceError('capture error'));
     });
 
+    it('katch.captureError without write file error', done => {
+
+        katch.on('typeReferenceError', (err) => {
+            if (err.message === 'capture error')
+                done();
+        });
+        katch.config = {
+            writeFile: false
+        };
+        katch.captureError(new ReferenceError('capture error'));
+    });
+
     it('katch.wrap', done => {
 
         katch.on('typeReferenceError', (err) => {
-            if (err.message === 'func2 is not defined')
+            if (err.message === 'func2 is not defined') {
                 done();
+            }
         });
 
         katch.wrap(() => {
             func2();
+        });
+    });
+
+    it('katch.wrap with params', done => {
+
+        katch.on('typeReferenceError', (err, params) => {
+            if (err.message === 'func3 is not defined') {
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.wrap(() => {
+            func3();
+        }, {
+            custom: 'horror'
         });
     });
 });
