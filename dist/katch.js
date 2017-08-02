@@ -392,6 +392,10 @@ var Log = __webpack_require__(7);
 var Events = __webpack_require__(2);
 var sha256 = __webpack_require__(8);
 
+/**
+ * Default options
+ * @type {{logging: boolean, writeFile: {prefix: string, humanize: boolean, folderPath: string}}}
+ */
 var defaultConfig = {
     logging: true,
     writeFile: {
@@ -403,6 +407,7 @@ var defaultConfig = {
 
 /**
  * katch
+ * @constructor
  * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
  * @param opts {object} options object
  */
@@ -412,7 +417,7 @@ function katch(opts) {
 
     if (Helpers.isBrowser()) {
         window.onerror = function (msg, url, lineNo, columnNo, error) {
-            katch.captureError(error, {
+            katch.error(error, {
                 message: msg,
                 url: url,
                 lineNo: lineNo,
@@ -420,7 +425,7 @@ function katch(opts) {
             });
         };
     } else {
-        process.on('uncaughtException', katch.captureError);
+        process.on('uncaughtException', katch.error);
     }
 
     return katch;
@@ -434,7 +439,7 @@ katch.config = defaultConfig;
 
 /**
  * Set config
- * @param opts
+ * @param opts {Object} configuration options
  */
 katch.setup = function (opts) {
     if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
@@ -444,11 +449,10 @@ katch.setup = function (opts) {
 
 /**
  * Catch error
- * @alias error
  * @param error {Error} error object
  * @param params {Object} optional params object
  */
-katch.captureError = function (error) {
+katch.error = function (error) {
     var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
     var logObj = {
@@ -466,11 +470,10 @@ katch.captureError = function (error) {
 
 /**
  * Catch error
- * @alias captureError
  * @param error {Error} error object
  * @param params {Object} optional params object
  */
-katch.error = katch.captureError;
+katch.captureError = katch.error;
 
 /**
  * Log info
@@ -509,7 +512,7 @@ katch.wrap = function (func) {
 
 /**
  * Call events
- * @param event {string} event name
+ * @param event {String} event name
  * @param callback {function} callback function
  */
 katch.on = Events.on;
