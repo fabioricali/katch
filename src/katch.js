@@ -5,7 +5,7 @@ const fs = require('fs');
 
 let defaultConfig = {
     writeFile: {
-        folderPath: './errors'
+        folderPath: './logs'
     }
 };
 
@@ -28,13 +28,14 @@ function katch(opts) {
                 lineNo: lineNo,
                 columnNo: columnNo
             });
-            return false;
         }
     } else {
         process.on('uncaughtException', (error) => {
             katch.captureError(error);
         });
     }
+
+    return katch;
 }
 
 /**

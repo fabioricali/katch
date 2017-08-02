@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.0.27] - 2017-08-02
+### Added
+- Now constructor return `this`
+
 ## [0.0.26] - 2017-08-02
 ### Fixed
 - Empty configuration issue
