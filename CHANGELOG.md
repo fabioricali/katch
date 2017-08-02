@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Now constructor return `this`
 
+### Changed
+- Now default log folder is "logs" instead of "errors"
+
 ## [0.0.26] - 2017-08-02
 ### Fixed
 - Empty configuration issue

@@ -2,9 +2,11 @@ const Helpers = require('./helpers');
 const Events = require('./events');
 const sha256 = require('./sha256');
 const fs = require('fs');
+const os = require('os');
 
 let defaultConfig = {
     writeFile: {
+        humanize: true,
         folderPath: './logs'
     }
 };
@@ -63,18 +65,29 @@ katch.captureError = (error, params = {}) => {
 
     if (Helpers.isBrowser()) {
 
+        logObj.agent = navigator.userAgent;
+
         let logName = 'katch-' + Helpers.getLocaleISODate('date');
         let logAtDay = JSON.parse(localStorage.getItem(logName)) || [];
+
         logAtDay.push(logObj);
         localStorage.setItem(logName, JSON.stringify(logAtDay));
 
     } else if (Helpers.isServer()) {
 
-        let folderPath = katch.config.writeFile.folderPath;
-        let filename = Helpers.getLocaleISODate('date') + '.log';
-        let separator = '------------------------------------------------------------------------------------';
-        let fileContent = `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
+        let fileContent = '';
 
+        logObj.pid = process.pid;
+        logObj.platform = process.platform;
+
+        if(katch.config.humanize) {
+            let folderPath = katch.config.writeFile.folderPath;
+            let filename = Helpers.getLocaleISODate('date') + '.log';
+            let separator = '------------------------------------------------------------------------------------';
+            fileContent = `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
+        } else {
+            fileContent = JSON.stringify(logObj)
+        }
         /*
         If writeFile is falsy do not write
          */
