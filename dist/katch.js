@@ -62,7 +62,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -263,142 +263,11 @@ process.umask = function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-module.exports = __webpack_require__(2);
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var Helpers = __webpack_require__(3);
-var Events = __webpack_require__(5);
-var sha256 = __webpack_require__(6);
-var fs = __webpack_require__(7);
-
-var defaultConfig = {
-    writeFile: {
-        folderPath: './errors'
-    }
-};
-
-/**
- * katch
- * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
- * @param opts {object} options object
- */
-function katch(opts) {
-
-    if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
-        katch.config = Helpers.defaults(opts, defaultConfig);
-    }
-
-    if (Helpers.isBrowser()) {
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
-            katch.captureError(error, {
-                message: msg,
-                url: url,
-                lineNo: lineNo,
-                columnNo: columnNo
-            });
-            return false;
-        };
-    } else {
-        process.on('uncaughtException', function (error) {
-            katch.captureError(error);
-        });
-    }
-}
-
-/**
- * Config params
- * @type {{}}
- */
-katch.config = defaultConfig;
-
-/**
- * Catch error
- * @param error {Error} error object
- * @param params {Object} optional params object
- */
-katch.captureError = function (error) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    Events.fire('error', error, params);
-    Events.fire('type' + error.name, error, params);
-    Events.fire('beforeLog', error, params);
-
-    var logObj = {
-        time: Helpers.getLocaleISODate(),
-        hash: sha256(error.stack),
-        error: error.stack,
-        params: params
-    };
-
-    if (Helpers.isBrowser()) {
-
-        var logName = 'katch-' + Helpers.getLocaleISODate('date');
-        var logAtDay = JSON.parse(localStorage.getItem(logName)) || [];
-        logAtDay.push(logObj);
-        localStorage.setItem(logName, JSON.stringify(logAtDay));
-    } else if (Helpers.isServer()) {
-
-        var folderPath = katch.config.writeFile.folderPath;
-        var filename = Helpers.getLocaleISODate('date') + '.log';
-        var separator = '------------------------------------------------------------------------------------';
-        var fileContent = logObj.time + ' ' + logObj.hash + '\n' + logObj.error + '\n' + separator + '\n';
-
-        /*
-        If writeFile is falsy do not write
-         */
-        if (katch.config.writeFile) {
-            if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
-            fs.appendFileSync(folderPath + '/' + filename, fileContent);
-        }
-    }
-
-    Events.fire('afterLog', error, params);
-};
-
-/**
- * Wrapper function
- * @type {function(*, *=)}
- */
-katch.wrap = function (func) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    try {
-        func();
-    } catch (e) {
-        katch.captureError(e, params);
-    }
-};
-
-/**
- * Call events
- * @param event {string} event name
- * @param callback {function} callback function
- */
-katch.on = Events.on;
-
-module.exports = katch;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var dateformat = __webpack_require__(4);
+var dateformat = __webpack_require__(6);
 var Helpers = {};
 
 /**
@@ -452,7 +321,204 @@ module.exports = Helpers;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Events = {};
+Events.events = [];
+
+/**
+ * Call events
+ * @param event {string} event name
+ * @param callback {function} callback function
+ */
+Events.on = function (event, callback) {
+    Events.events.push(event, callback);
+};
+
+/**
+ * Fire event
+ * @param args {*}
+ */
+Events.fire = function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+    }
+
+    // `arguments` is an object, not array, in FF, so:
+    var _args = [];
+    for (var i = 0; i < args.length; i++) {
+        _args.push(args[i]);
+    } // Find event listeners, and support pseudo-event `catchAll`
+    var event = _args[0];
+    for (var j = 0; j <= Events.events.length; j += 2) {
+        if (Events.events[j] === event) Events.events[j + 1].apply(Events, _args.slice(1));
+        if (Events.events[j] === 'catchAll') Events.events[j + 1].apply(null, _args);
+    }
+};
+
+module.exports = Events;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
 /* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(5);
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var Helpers = __webpack_require__(1);
+var Log = __webpack_require__(7);
+var Events = __webpack_require__(2);
+var sha256 = __webpack_require__(8);
+
+var defaultConfig = {
+    logging: true,
+    writeFile: {
+        prefix: '',
+        humanize: true,
+        folderPath: './logs'
+    }
+};
+
+/**
+ * katch
+ * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
+ * @param opts {object} options object
+ */
+function katch(opts) {
+
+    katch.setup(opts);
+
+    if (Helpers.isBrowser()) {
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            katch.captureError(error, {
+                message: msg,
+                url: url,
+                lineNo: lineNo,
+                columnNo: columnNo
+            });
+        };
+    } else {
+        process.on('uncaughtException', katch.captureError);
+    }
+
+    return katch;
+}
+
+/**
+ * Config params
+ * @type {{}}
+ */
+katch.config = defaultConfig;
+
+/**
+ * Set config
+ * @param opts
+ */
+katch.setup = function (opts) {
+    if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
+        katch.config = Helpers.defaults(opts, defaultConfig);
+    }
+};
+
+/**
+ * Catch error
+ * @alias error
+ * @param error {Error} error object
+ * @param params {Object} optional params object
+ */
+katch.captureError = function (error) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    var logObj = {
+        time: Helpers.getLocaleISODate(),
+        type: 'ERROR',
+        hash: sha256(error.stack),
+        message: error.stack,
+        params: params
+    };
+    Events.fire('error', error, params);
+    Events.fire('type' + error.name, error, params);
+
+    Log.write(logObj, katch.config);
+};
+
+/**
+ * Catch error
+ * @alias captureError
+ * @param error {Error} error object
+ * @param params {Object} optional params object
+ */
+katch.error = katch.captureError;
+
+/**
+ * Log info
+ * @param message {String} error object
+ * @param params {Object} optional params object
+ */
+katch.info = function (message) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    var logObj = {
+        time: Helpers.getLocaleISODate(),
+        type: 'INFO',
+        hash: sha256(message),
+        message: message,
+        params: params,
+        objectType: null
+    };
+    Events.fire('info', message, params);
+
+    Log.write(logObj, katch.config);
+};
+
+/**
+ * Wrapper function
+ * @type {function(*, *=)}
+ */
+katch.wrap = function (func) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    try {
+        func();
+    } catch (e) {
+        katch.captureError(e, params);
+    }
+};
+
+/**
+ * Call events
+ * @param event {string} event name
+ * @param callback {function} callback function
+ */
+katch.on = Events.on;
+
+module.exports = katch;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -680,49 +746,80 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 })(undefined);
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
 
-
-var Events = {};
-Events.events = [];
-
-/**
- * Call events
- * @param event {string} event name
- * @param callback {function} callback function
- */
-Events.on = function (event, callback) {
-    Events.events.push(event, callback);
-};
+var Helpers = __webpack_require__(1);
+var Events = __webpack_require__(2);
+var fs = __webpack_require__(3);
+var os = __webpack_require__(3);
+var Log = {};
 
 /**
- * Fire event
- * @param args {*}
+ * Write log
+ * @param logObj
+ * @param config
  */
-Events.fire = function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
+Log.write = function (logObj, config) {
+
+    if (Helpers.isBrowser()) {
+
+        logObj.useragent = navigator.userAgent;
+        if (config.logging) {
+            var logName = 'katch';
+            var logDayKey = Helpers.getLocaleISODate('date');
+            var logAtDay = JSON.parse(localStorage.getItem(logName)) || {};
+
+            if (!logAtDay[logDayKey]) logAtDay[logDayKey] = [];
+
+            logAtDay[logDayKey].push(logObj);
+
+            try {
+                localStorage.setItem(logName, JSON.stringify(logAtDay));
+            } catch (e) {
+                localStorage.clear();
+                localStorage.setItem(logName, JSON.stringify(logAtDay));
+            }
+        }
+    } else {
+
+        var filename = Helpers.getLocaleISODate('date') + '.log';
+        var folderPath = config.writeFile.folderPath;
+        var fileContent = '';
+        var prefix = config.writeFile.prefix;
+
+        logObj.host = os.hostname();
+        logObj.pid = process.pid;
+        logObj.platform = process.platform;
+
+        if (config.logging) {
+            if (config.writeFile.humanize) {
+                var separator = '------------------------------------------------------------------------------------';
+                fileContent = '[' + logObj.time + '] [' + logObj.type + '] [' + logObj.host + '] [' + logObj.hash + '] \n' + logObj.message + '\n' + separator + '\n';
+            } else {
+                fileContent = JSON.stringify(logObj) + '\n';
+            }
+            /*
+            If writeFile is falsy do not write
+             */
+            if (config.writeFile) {
+                if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
+                fs.appendFileSync(folderPath + '/' + prefix + filename, fileContent);
+            }
+        }
     }
 
-    // `arguments` is an object, not array, in FF, so:
-    var _args = [];
-    for (var i = 0; i < args.length; i++) {
-        _args.push(args[i]);
-    } // Find event listeners, and support pseudo-event `catchAll`
-    var event = _args[0];
-    for (var j = 0; j <= Events.events.length; j += 2) {
-        if (Events.events[j] === event) Events.events[j + 1].apply(Events, _args.slice(1));
-        if (Events.events[j] === 'catchAll') Events.events[j + 1].apply(null, _args);
-    }
+    Events.fire('log', logObj);
 };
 
-module.exports = Events;
+module.exports = Log;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -942,13 +1039,6 @@ function SHA256(s) {
 }
 
 module.exports = SHA256;
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 /***/ })
 /******/ ]); 

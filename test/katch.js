@@ -22,7 +22,7 @@ describe('katch', () => {
 
             katch({
                 writeFile: {
-                    folderPath: './test/textures/errors'
+                    folderPath: './test/textures/logs'
                 }
             });
 
@@ -148,10 +148,22 @@ describe('katch', () => {
             if (err.message === 'capture error 2')
                 done();
         });
-        katch.config = {
+
+        katch.setup({
             writeFile: false
-        };
+        });
+
         katch.captureError(new ReferenceError('capture error 2'));
+    });
+
+    it('katch.error alias of captureError', done => {
+
+        katch.on('typeReferenceError', (err) => {
+            if (err.message === 'capture error 3')
+                done();
+        });
+
+        katch.error(new ReferenceError('capture error 3'));
     });
 
     it('katch.wrap', done => {
@@ -181,5 +193,43 @@ describe('katch', () => {
         }, {
             custom: 'horror'
         });
+    });
+
+    it('write log json', done => {
+
+        katch.on('typeReferenceError', (err, params) => {
+            if (err.message === 'func4 is not defined') {
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.setup({
+            writeFile: {
+                prefix: 'json-',
+                humanize: false,
+                folderPath: './test/textures/logs'
+            }
+        });
+
+        console.log(katch.config);
+
+        katch.wrap(() => {
+            func4();
+        }, {
+            custom: 'horror'
+        });
+    });
+
+    it('append info to log', done => {
+
+        katch.on('info', (message, params) => {
+            if (message === 'hello world') {
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.info('hello world', {foo: 'bar'});
     });
 });

@@ -1,10 +1,14 @@
 const Helpers = require('./helpers');
+const Log = require('./log');
 const Events = require('./events');
-const sha256 = require('./sha256');
-const fs = require('fs');
-const os = require('os');
+const sha256 = require('./lib/sha256');
 
-let defaultConfig = {
+/**
+ * Default options
+ * @type {{logging: boolean, writeFile: {prefix: string, humanize: boolean, folderPath: string}}}
+ */
+const defaultConfig = {
+    logging: true,
     writeFile: {
         prefix: '',
         humanize: true,
@@ -14,18 +18,17 @@ let defaultConfig = {
 
 /**
  * katch
+ * @constructor
  * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
  * @param opts {object} options object
  */
 function katch(opts) {
 
-    if (typeof opts === 'object') {
-        katch.config = Helpers.defaults(opts, defaultConfig);
-    }
+    katch.setup(opts);
 
     if (Helpers.isBrowser()) {
         window.onerror = function (msg, url, lineNo, columnNo, error) {
-            katch.captureError(error, {
+            katch.error(error, {
                 message: msg,
                 url: url,
                 lineNo: lineNo,
@@ -33,9 +36,7 @@ function katch(opts) {
             });
         }
     } else {
-        process.on('uncaughtException', (error) => {
-            katch.captureError(error);
-        });
+        process.on('uncaughtException', katch.error);
     }
 
     return katch;
@@ -48,63 +49,58 @@ function katch(opts) {
 katch.config = defaultConfig;
 
 /**
+ * Set config
+ * @param opts {Object} configuration options
+ */
+katch.setup = (opts)=>{
+    if (typeof opts === 'object') {
+        katch.config = Helpers.defaults(opts, defaultConfig);
+    }
+};
+
+/**
  * Catch error
  * @param error {Error} error object
  * @param params {Object} optional params object
  */
-katch.captureError = (error, params = {}) => {
-    Events.fire('error', error, params);
-    Events.fire(`type${error.name}`, error, params);
-    Events.fire('beforeLog', error, params);
-
+katch.error = (error, params = {}) => {
     let logObj = {
         time: Helpers.getLocaleISODate(),
+        type: 'ERROR',
         hash: sha256(error.stack),
-        error: error.stack,
+        message: error.stack,
         params: params
     };
+    Events.fire('error', error, params);
+    Events.fire(`type${error.name}`, error, params);
 
-    if (Helpers.isBrowser()) {
+    Log.write(logObj, katch.config);
+};
 
-        logObj.agent = navigator.userAgent;
+/**
+ * Catch error
+ * @param error {Error} error object
+ * @param params {Object} optional params object
+ */
+katch.captureError = katch.error;
 
-        let logName = 'katch';
-        let logDayKey = Helpers.getLocaleISODate('date');
-        let logAtDay = JSON.parse(localStorage.getItem(logName)) || [];
+/**
+ * Log info
+ * @param message {String} error object
+ * @param params {Object} optional params object
+ */
+katch.info = (message, params = {}) => {
+    let logObj = {
+        time: Helpers.getLocaleISODate(),
+        type: 'INFO',
+        hash: sha256(message),
+        message: message,
+        params: params,
+        objectType: null
+    };
+    Events.fire('info', message, params);
 
-        if(!logAtDay[logDayKey])
-            logAtDay[logDayKey] = [];
-
-        logAtDay[logDayKey].push(logObj);
-        localStorage.setItem(logName, JSON.stringify(logAtDay));
-
-    } else if (Helpers.isServer()) {
-
-        let filename = Helpers.getLocaleISODate('date') + '.log';
-        let folderPath = katch.config.writeFile.folderPath;
-        let fileContent = '';
-        let prefix = katch.config.writeFile.prefix;
-
-        logObj.pid = process.pid;
-        logObj.platform = process.platform;
-
-        if(katch.config.humanize) {
-            let separator = '------------------------------------------------------------------------------------';
-            fileContent = `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
-        } else {
-            fileContent = JSON.stringify(logObj)
-        }
-        /*
-        If writeFile is falsy do not write
-         */
-        if(katch.config.writeFile) {
-            if (!fs.existsSync(folderPath))
-                fs.mkdirSync(folderPath);
-            fs.appendFileSync(`${folderPath}/${prefix}${filename}`, fileContent);
-        }
-    }
-
-    Events.fire('afterLog', error, params);
+    Log.write(logObj, katch.config);
 };
 
 /**
@@ -121,7 +117,7 @@ katch.wrap = ((func, params = {}) => {
 
 /**
  * Call events
- * @param event {string} event name
+ * @param event {String} event name
  * @param callback {function} callback function
  */
 katch.on = Events.on;

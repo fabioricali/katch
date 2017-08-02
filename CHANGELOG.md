@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Now constructor return `this`
 - Prefix options
 - Humanize options
-- Server
+- Server log
     - Process info
-- Browser
-    - User agent info    
+- Browser log
+    - User agent info
 
 ### Changed
 - Server

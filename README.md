@@ -47,7 +47,7 @@ Add before others scripts
 <script>katch()</script>
 ```
 
-### Configuration
+### Examples
 ```javascript
 const katch = require('katch');
 
@@ -72,20 +72,20 @@ katch.on('error', (error, params) => {
 ```javascript
 const katch = require('katch');
 
-katch.config = {
+katch.setup({
     writeFile: false
-};
+});
 
 try {
     foo();
     bar();
 } catch (e) {
-    katch.captureError(e, {
+    katch.error(e, {
         customParam: 'hello horror'
     });
 }
 
-//... or use wrap method
+//... or using a wrap method
 
 katch.wrap(() => {
     foo();
@@ -97,6 +97,18 @@ katch.wrap(() => {
 katch.on('error', (error, params) => {
     console.log(error, params);
 });
+```
+
+### Configuration
+```javascript
+const config = {
+    logging: true, // write log 
+    writeFile: { // only server
+        prefix: '', // add a prefix to file
+        humanize: true, // write a readable log
+        folderPath: './logs' // folder path
+    }
+}
 ```
 
 ## Changelog

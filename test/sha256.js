@@ -1,4 +1,4 @@
-const sha256 = require('../src/sha256');
+const sha256 = require('../src/lib/sha256');
 const be = require('bejs');
 
 describe('sha256', () => {

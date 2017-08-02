@@ -1,5 +1,5 @@
 const dateformat = require('dateformat');
-let Helpers = {};
+const Helpers = {};
 
 /**
  * Set default value

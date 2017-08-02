@@ -32,7 +32,8 @@ module.exports = {
         }],
     },
     node: {
-        fs: 'empty'
+        fs: 'empty',
+        os: 'empty'
     },
     //target: 'node',
     plugins: [
