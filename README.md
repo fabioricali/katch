@@ -115,7 +115,7 @@ Invoked by `error` and `info` methods
 ```javascript
 katch.on('log', obj => {
     console.log(obj);
-    //example
+    // obj
     { 
         time: '2017-08-02 19:01:46',
         type: 'INFO', // INFO or ERROR
