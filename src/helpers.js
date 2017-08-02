@@ -37,14 +37,6 @@ Helpers.getLocaleISODate = (part = 'all') => {
 };
 
 /**
- * Check if server environment
- * @returns {boolean}
- */
-Helpers.isServer = () => {
-    return typeof process !== 'undefined';
-};
-
-/**
  * Check if browser environment
  * @returns {boolean}
  */
