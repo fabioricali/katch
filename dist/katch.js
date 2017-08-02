@@ -1,4 +1,4 @@
-// [AIV]  katch Build version: 0.0.25  
+// [AIV]  katch Build version: 0.0.26  
  var katch =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -319,7 +319,7 @@ function katch(opts) {
  * Config params
  * @type {{}}
  */
-katch.config = {};
+katch.config = defaultConfig;
 
 /**
  * Catch error
