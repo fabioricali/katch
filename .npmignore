@@ -1,0 +1,7 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea/
+node_modules/
+version-to-tag.sh
+webpack.config.js
+test/
+.gitignore
