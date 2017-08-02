@@ -281,7 +281,7 @@ var Events = __webpack_require__(5);
 var sha256 = __webpack_require__(6);
 var fs = __webpack_require__(7);
 
-var defaultOpts = {
+var defaultConfig = {
     writeFile: {
         folderPath: './errors'
     }
@@ -295,7 +295,7 @@ var defaultOpts = {
 function katch(opts) {
 
     if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
-        katch.config = Helpers.defaults(opts, defaultOpts);
+        katch.config = Helpers.defaults(opts, defaultConfig);
     }
 
     if (Helpers.isBrowser()) {
@@ -314,6 +314,12 @@ function katch(opts) {
         });
     }
 }
+
+/**
+ * Config params
+ * @type {{}}
+ */
+katch.config = {};
 
 /**
  * Catch error
@@ -361,13 +367,15 @@ katch.captureError = function (error) {
 
 /**
  * Wrapper function
- * @type {function(*)}
+ * @type {function(*, *=)}
  */
 katch.wrap = function (func) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
     try {
         func();
     } catch (e) {
-        katch.captureError(e);
+        katch.captureError(e, params);
     }
 };
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1 style="color: red">katch!</h1>
+<h1 style="color: red">katch</h1>
 
 Simple module that capture errors and log it. Works both server and browser.
 
