@@ -41,7 +41,7 @@ function katch(opts) {
  * Config params
  * @type {{}}
  */
-katch.config = {};
+katch.config = defaultConfig;
 
 /**
  * Catch error
