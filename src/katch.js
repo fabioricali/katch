@@ -6,6 +6,7 @@ const os = require('os');
 
 let defaultConfig = {
     writeFile: {
+        prefix: '',
         humanize: true,
         folderPath: './logs'
     }
@@ -67,22 +68,27 @@ katch.captureError = (error, params = {}) => {
 
         logObj.agent = navigator.userAgent;
 
-        let logName = 'katch-' + Helpers.getLocaleISODate('date');
+        let logName = 'katch';
+        let logDayKey = Helpers.getLocaleISODate('date');
         let logAtDay = JSON.parse(localStorage.getItem(logName)) || [];
 
-        logAtDay.push(logObj);
+        if(!logAtDay[logDayKey])
+            logAtDay[logDayKey] = [];
+
+        logAtDay[logDayKey].push(logObj);
         localStorage.setItem(logName, JSON.stringify(logAtDay));
 
     } else if (Helpers.isServer()) {
 
+        let filename = Helpers.getLocaleISODate('date') + '.log';
+        let folderPath = katch.config.writeFile.folderPath;
         let fileContent = '';
+        let prefix = katch.config.writeFile.prefix;
 
         logObj.pid = process.pid;
         logObj.platform = process.platform;
 
         if(katch.config.humanize) {
-            let folderPath = katch.config.writeFile.folderPath;
-            let filename = Helpers.getLocaleISODate('date') + '.log';
             let separator = '------------------------------------------------------------------------------------';
             fileContent = `${logObj.time} ${logObj.hash}\n${logObj.error}\n${separator}\n`;
         } else {
@@ -94,7 +100,7 @@ katch.captureError = (error, params = {}) => {
         if(katch.config.writeFile) {
             if (!fs.existsSync(folderPath))
                 fs.mkdirSync(folderPath);
-            fs.appendFileSync(`${folderPath}/${filename}`, fileContent);
+            fs.appendFileSync(`${folderPath}/${prefix}${filename}`, fileContent);
         }
     }
 
