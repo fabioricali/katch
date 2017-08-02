@@ -95,8 +95,7 @@ katch.info = (message, params = {}) => {
         type: 'INFO',
         hash: sha256(message),
         message: message,
-        params: params,
-        objectType: null
+        params: params
     };
     Events.fire('info', message, params);
 

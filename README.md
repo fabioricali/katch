@@ -99,12 +99,44 @@ katch.on('error', (error, params) => {
 });
 ```
 
+#### Append info to log
+```javascript
+katch.info('A log message', {custom: 1234});
+
+katch.on('info', (message, params) => {
+    console.log(message, params);
+});
+```
+
+#### Log event
+
+Invoked by `error` and `info` methods
+
+```javascript
+katch.on('log', obj => {
+    console.log(obj);
+    //example
+    { 
+        time: '2017-08-02 19:01:46',
+        type: 'INFO', // INFO or ERROR
+        hash: 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9',
+        message: 'hello world',
+        params: { foo: 'bar' },
+        host: 'DEVELOP-STATION', // only server
+        pid: 22232, // only server
+        platform: 'win32' // only server,
+        useragent: '"Mozilla/5.0...' // only browser
+     }
+     
+});
+```
+
 ### Configuration
 ```javascript
 const config = {
-    logging: true, // write log 
-    writeFile: { // only server
-        prefix: '', // add a prefix to file
+    logging: true, // disable writing log if false
+    writeFile: { // only server environment
+        prefix: '', // add a prefix to filename
         humanize: true, // write a readable log
         folderPath: './logs' // folder path
     }
@@ -115,7 +147,7 @@ const config = {
 You can view the changelog <a target="_blank" href="https://github.com/fabioricali/katch/blob/master/CHANGELOG.md">here</a>
 
 ## License
-beJS is open-sourced software licensed under the <a target="_blank" href="http://opensource.org/licenses/MIT">MIT license</a>
+katch is open-sourced software licensed under the <a target="_blank" href="http://opensource.org/licenses/MIT">MIT license</a>
 
 ## Author
 <a target="_blank" href="http://rica.li">Fabio Ricali</a>

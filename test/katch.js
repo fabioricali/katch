@@ -10,6 +10,11 @@ if (typeof process === 'object') {
         console.log(err.message);
         console.log(err.stack);
     });
+
+    katch.on('log', obj => {
+        console.log('log event');
+        console.log(obj);
+    });
 }
 
 describe('katch', () => {
