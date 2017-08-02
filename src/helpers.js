@@ -31,7 +31,7 @@ Helpers.getLocaleISODate = (part = 'all') => {
     if(part === 'date')
         return dateformat(now, 'yyyy-mm-dd');
     else if(part === 'time')
-        return dateformat(now, 'HH:MM:SS');
+        return dateformat(now, 'HH:MM:ss');
     else
         return dateformat(now, 'yyyy-mm-dd HH:MM:ss');
 };
