@@ -1,4 +1,4 @@
-// [AIV]  katch Build version: 0.0.24  
+// [AIV]  katch Build version: 0.0.25  
  var katch =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -429,7 +429,7 @@ Helpers.getLocaleISODate = function () {
     var part = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'all';
 
     var now = new Date();
-    if (part === 'date') return dateformat(now, 'yyyy-mm-dd');else if (part === 'time') return dateformat(now, 'HH:MM:SS');else return dateformat(now, 'yyyy-mm-dd HH:MM:ss');
+    if (part === 'date') return dateformat(now, 'yyyy-mm-dd');else if (part === 'time') return dateformat(now, 'HH:MM:ss');else return dateformat(now, 'yyyy-mm-dd HH:MM:ss');
 };
 
 /**
