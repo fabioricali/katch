@@ -1,4 +1,4 @@
-// [AIV]  katch Build version: 0.1.0  
+// [AIV]  katch Build version: 0.1.1  
  var katch =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -479,8 +479,7 @@ katch.info = function (message) {
         type: 'INFO',
         hash: sha256(message),
         message: message,
-        params: params,
-        objectType: null
+        params: params
     };
     Events.fire('info', message, params);
 
