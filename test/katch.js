@@ -135,23 +135,23 @@ describe('katch', () => {
     it('katch.captureError', done => {
 
         katch.on('typeReferenceError', (err) => {
-            if (err.message === 'capture error')
+            if (err.message === 'capture error 1')
                 done();
         });
 
-        katch.captureError(new ReferenceError('capture error'));
+        katch.captureError(new ReferenceError('capture error 1'));
     });
 
     it('katch.captureError without write file error', done => {
 
         katch.on('typeReferenceError', (err) => {
-            if (err.message === 'capture error')
+            if (err.message === 'capture error 2')
                 done();
         });
         katch.config = {
             writeFile: false
         };
-        katch.captureError(new ReferenceError('capture error'));
+        katch.captureError(new ReferenceError('capture error 2'));
     });
 
     it('katch.wrap', done => {
