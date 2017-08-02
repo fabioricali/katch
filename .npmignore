@@ -1,7 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
 node_modules/
+test/
 version-to-tag.sh
 webpack.config.js
-test/
 .gitignore
+.travis.yml
