@@ -1,4 +1,4 @@
-// [AIV]  katch Build version: 0.0.26  
+// [AIV]  katch Build version: 0.1.0  
  var katch =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -263,7 +263,7 @@ process.umask = function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -302,14 +302,6 @@ Helpers.getLocaleISODate = function () {
 };
 
 /**
- * Check if server environment
- * @returns {boolean}
- */
-Helpers.isServer = function () {
-    return typeof process !== 'undefined';
-};
-
-/**
  * Check if browser environment
  * @returns {boolean}
  */
@@ -318,7 +310,6 @@ Helpers.isBrowser = function () {
 };
 
 module.exports = Helpers;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 2 */

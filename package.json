@@ -1,6 +1,6 @@
 {
     "name": "katch",
-    "version": "0.0.26",
+    "version": "0.1.0",
     "description": "Simple module that capture errors and log it. Works both server and browser.",
     "main": "index.js",
     "scripts": {
