@@ -21,6 +21,7 @@ Add in top of your entry point app
 
 ## Basic usage
 ```javascript
+// detect automatically all errors
 require('katch')();
 // others modules
 ```
@@ -110,7 +111,7 @@ katch.on('info', (message, params) => {
 
 #### Log event
 
-Invoked by `error` and `info` methods
+Every invoked
 
 ```javascript
 katch.on('log', obj => {
@@ -134,7 +135,7 @@ katch.on('log', obj => {
 ### Configuration
 ```javascript
 const config = {
-    logging: true, // disable writing log if false
+    logging: true, // if false disable writing log. The event "log" will be invoked anyway 
     writeFile: { // only server environment
         prefix: '', // add a prefix to filename
         humanize: true, // write a readable log
