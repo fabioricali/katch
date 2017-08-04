@@ -8,6 +8,7 @@ const sha256 = require('./lib/sha256');
  * @type {{logging: boolean, writeFile: {prefix: string, humanize: boolean, folderPath: string}}}
  */
 const defaultConfig = {
+    console: true,
     logging: true,
     writeFile: {
         prefix: '',
@@ -74,6 +75,9 @@ katch.error = (error, params = {}) => {
     Events.fire('error', error, params);
     Events.fire(`type${error.name}`, error, params);
 
+    if (katch.config.console)
+        console.error(error);
+
     Log.write(logObj, katch.config);
 };
 
@@ -99,6 +103,9 @@ katch.info = (message, params = {}) => {
     };
     Events.fire('info', message, params);
 
+    if (katch.config.console)
+        console.log(message);
+
     Log.write(logObj, katch.config);
 };
 
@@ -107,11 +114,11 @@ katch.info = (message, params = {}) => {
  * @type {function(*, *=)}
  */
 katch.wrap = ((func, params = {}) => {
-   try {
-       func();
-   } catch (e) {
-       katch.captureError(e, params);
-   }
+    try {
+        func();
+    } catch (e) {
+        katch.captureError(e, params);
+    }
 });
 
 /**
