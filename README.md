@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1 style="color: red">katch</h1>
+<img src="https://raw.githubusercontent.com/fabioricali/katch/develop/extra/logo-katch.png" title="katch"/>
 
 Simple module that capture errors and log it. Works both server and browser.
 

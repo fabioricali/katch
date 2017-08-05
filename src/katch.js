@@ -173,7 +173,7 @@ katch.config = defaultConfig;
  *       prefix: '',
  *       humanize: true,
  *       folderPath: './logs'
- *  });
+ * });
  */
 katch.setup = (opts) => {
     if (typeof opts === 'object') {
