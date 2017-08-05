@@ -1,6 +1,5 @@
 const Koa = require('koa');
 const request = require('request');
-global.app = new Koa();
 
 process.removeAllListeners('uncaughtException');
 process.setMaxListeners(0);
@@ -20,10 +19,10 @@ katch.on('log', obj => {
 
 describe('katch koa', function() {
 
-    this.timeout(5000);
+    this.timeout(2000);
 
     let listeners;
-    let port = 3000;
+    let port = 4000;
     let host = 'http://localhost:'+port;
 
     if (typeof process === 'object') {
@@ -46,16 +45,19 @@ describe('katch koa', function() {
         });
     }
 
-    it('typeReferenceError', done => {
+    it('typeError', done => {
 
-        katch.on('typeReferenceError', () => {
-            done();
+        katch.on('typeError', (error) => {
+            if(error.message === 'koa error')
+                done();
         });
+
+        const app = new Koa();
 
         katch.koa(app);
         // response
         app.use(ctx => {
-            ctx2.body = 'Hello Koa';
+            throw new Error('koa error');
         });
 
         app.listen(port);

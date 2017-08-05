@@ -1,5 +1,6 @@
 const Helpers = require('./helpers');
 const Events = require('./events');
+const sha256 = require('./lib/sha256');
 const fs = require('fs');
 const os = require('os');
 const Log = {};
@@ -10,6 +11,10 @@ const Log = {};
  * @param config
  */
 Log.write = (logObj, config) => {
+
+    // Add time and hash to log object
+    logObj.time = Helpers.getLocaleISODate();
+    logObj.hash = sha256(logObj.message);
 
     if (Helpers.isBrowser()) {
 
@@ -45,7 +50,7 @@ Log.write = (logObj, config) => {
         if(config.logging) {
             if (config.writeFile.humanize) {
                 let separator = '------------------------------------------------------------------------------------';
-                fileContent = `[${logObj.time}] [${logObj.type}] [${logObj.host}] [${logObj.hash}] \n${logObj.message}\n${separator}\n`;
+                fileContent = `[${logObj.time}] [${logObj.level}] [${logObj.code}] [${logObj.host}] [${logObj.hash}] \n${logObj.message}\n${separator}\n`;
             } else {
                 fileContent = JSON.stringify(logObj) + '\n';
             }

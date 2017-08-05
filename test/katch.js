@@ -42,7 +42,8 @@ describe('katch', () => {
 
     it('Error', done => {
 
-        katch.on('typeError', () => {
+        katch.on('typeError', (error) => {
+            if(error.message === 'MyError')
             done();
         });
 
@@ -236,5 +237,139 @@ describe('katch', () => {
         });
 
         katch.info('hello world', {foo: 'bar'});
+    });
+
+    it('append trace to log', done => {
+
+        katch.on('trace', (message, params) => {
+            if (message === 'hello world') {
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.trace('hello world', {foo: 'bar'});
+    });
+
+    it('append warn to log', done => {
+
+        katch.on('warn', (message, params) => {
+            if (message === 'hello world') {
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.warn('hello world', {foo: 'bar'});
+    });
+
+    it('append debug to log', done => {
+
+        katch.on('debug', (message, params) => {
+            if (message === 'hello world') {
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.debug('hello world', {foo: 'bar'});
+    });
+
+    it('append fatal to log', done => {
+
+        katch.on('fatal', (message, params) => {
+            if (message === 'hello world') {
+                console.log(message);
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.fatal('hello world', {foo: 'bar'});
+    });
+
+    it('addLevel ok', done => {
+
+        katch.on('mycustom', (message, params) => {
+            if (message === 'hello world') {
+                console.log(message);
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.addLevel('mycustom', 123);
+
+        katch.mycustom('hello world', {foo: 'bar'});
+    });
+
+    it('addLevel level exists', done => {
+        try {
+            katch.addLevel('info', 123);
+        } catch (e) {
+            console.log(e);
+            done();
+        }
+    });
+
+    it('addLevel level bad console type', done => {
+        try {
+            katch.addLevel('info123', 123788, 'pop');
+        } catch (e) {
+            console.log(e);
+            done();
+        }
+    });
+
+    it('addLevel level not allowed', done => {
+        try {
+            katch.addLevel('wrap', 123);
+        } catch (e) {
+            console.log(e);
+            done();
+        }
+    });
+
+    it('addLevel code exists', done => {
+        try {
+            katch.addLevel('info2', 101);
+        } catch (e) {
+            console.log(e);
+            if(e.message === 'level code already exists')
+                done();
+        }
+    });
+
+    it('removeLevel level', done => {
+        try {
+            katch.addLevel('mylevel', 12345);
+            console.log(katch.getLevels());
+            katch.removeLevel('mylevel');
+            console.log(katch.getLevels());
+            done();
+        } catch (e) {
+            console.log(e);
+            done(e);
+        }
+    });
+
+    it('removeLevel level system', done => {
+        try {
+            katch.removeLevel('info');
+        } catch (e) {
+            console.log(e);
+            if(e.message === 'level name not allowed')
+                done();
+        }
+    });
+
+    it('removeLevel unknown level', done => {
+        try {
+            katch.removeLevel('level_x');
+        } catch (e) {
+            console.log(e);
+            if(e.message === 'level not found')
+                done();
+        }
     });
 });

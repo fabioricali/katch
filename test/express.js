@@ -1,5 +1,4 @@
 const request = require('request');
-global.app = require('express')();
 
 process.removeAllListeners('uncaughtException');
 process.setMaxListeners(0);
@@ -19,7 +18,7 @@ katch.on('log', obj => {
 
 describe('katch express', function() {
 
-    this.timeout(5000);
+    this.timeout(2000);
 
     let listeners;
     let port = 3000;
@@ -45,17 +44,21 @@ describe('katch express', function() {
         });
     }
 
-    it('typeReferenceError', done => {
+    it('typeError', done => {
 
-        katch.on('typeReferenceError', () => {
-            done();
+        katch.on('typeError', (error) => {
+            console.log(error.message);
+            if(error.message === 'express error')
+                done();
         });
+
+        const app = require('express')();
 
         katch.koa(app);
 
         // response
         app.get('/', (req, res) => {
-            ahahah();
+            throw new Error('express error');
         });
 
         app.use(katch.express);
