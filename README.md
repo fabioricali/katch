@@ -119,7 +119,8 @@ katch.on('log', obj => {
     // obj
     { 
         time: '2017-08-02 19:01:46',
-        type: 'INFO', // INFO or ERROR
+        level: 'INFO',
+        code: 104,
         hash: 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9',
         message: 'hello world',
         params: { foo: 'bar' },
@@ -135,6 +136,7 @@ katch.on('log', obj => {
 ### Configuration
 ```javascript
 const config = {
+    cosole: true,
     logging: true, // if false disable writing log. The event "log" will be invoked anyway 
     writeFile: { // only server environment
         prefix: '', // add a prefix to filename

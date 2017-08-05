@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 ### Added
 - Koa support
+- Express support
+- Now is possible add or remove custom log levels
+- Property `code` in log object
+- New log type: `katch.warn`, `katch.debug`, `katch.trace`, `katch.fatal`
+
+### Changed
+- In log object changed property `type` to `level`
 
 ## [0.1.1] - 2017-08-02
 ### Fixed
