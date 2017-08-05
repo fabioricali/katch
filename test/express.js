@@ -31,7 +31,7 @@ describe('katch express', function() {
 
             katch({
                 writeFile: {
-                    folderPath: './test/textures/logs/koa'
+                    folderPath: './test/textures/logs/express'
                 }
             });
 

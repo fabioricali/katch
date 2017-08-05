@@ -197,7 +197,7 @@ katch.error = (error, params = {}) => {
 
     Log.write({
         level: 'ERROR',
-        levelCode: levels.ERROR,
+        code: levels.ERROR.code,
         message: error.stack,
         params: params
     }, katch.config);

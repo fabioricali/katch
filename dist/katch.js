@@ -62,7 +62,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -267,7 +267,7 @@ process.umask = function () {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var dateformat = __webpack_require__(6);
+var dateformat = __webpack_require__(7);
 var Helpers = {};
 
 /**
@@ -367,10 +367,69 @@ module.exports = Events;
 "use strict";
 
 
-module.exports = __webpack_require__(5);
+var apply = Function.prototype.apply;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function () {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function () {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout = exports.clearInterval = function (timeout) {
+  if (timeout) {
+    timeout.close();
+  }
+};
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function () {};
+Timeout.prototype.close = function () {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function (item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function (item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function (item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout) item._onTimeout();
+    }, msecs);
+  }
+};
+
+// setimmediate attaches itself to the global object
+__webpack_require__(12);
+exports.setImmediate = setImmediate;
+exports.clearImmediate = clearImmediate;
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(6);
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -379,15 +438,16 @@ module.exports = __webpack_require__(5);
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var Helpers = __webpack_require__(1);
-var Log = __webpack_require__(7);
+var Log = __webpack_require__(8);
+var levels = __webpack_require__(10);
 var Events = __webpack_require__(2);
-var sha256 = __webpack_require__(8);
 
 /**
  * Default options
- * @type {{logging: boolean, writeFile: {prefix: string, humanize: boolean, folderPath: string}}}
+ * @type {{console: boolean, logging: boolean, writeFile: {prefix: string, humanize: boolean, folderPath: string}}}
  */
 var defaultConfig = {
+    console: true,
     logging: true,
     writeFile: {
         prefix: '',
@@ -397,10 +457,122 @@ var defaultConfig = {
 };
 
 /**
+ * Create level from levels object
+ * @function createLevel
+ * @private
+ */
+function createLevel() {
+    var _loop = function _loop(level) {
+        if (level === 'ERROR') return 'continue';
+        var methodName = level.toLowerCase();
+        katch[methodName] = function (message) {
+            var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+
+            Events.fire(methodName, message, params);
+
+            if (katch.config.console) console[levels[level].console](message);
+
+            Log.write({
+                level: level,
+                code: levels[level].code,
+                message: message,
+                params: params
+            }, katch.config);
+        };
+    };
+
+    for (var level in levels) {
+        var _ret = _loop(level);
+
+        if (_ret === 'continue') continue;
+    }
+}
+
+/**
+ * Run create level
+ */
+createLevel();
+
+/**
+ * Add custom level
+ * @function addLevel
+ * @param level {string} level name
+ * @param code {number} level code
+ * @param [consoleType=log] {string} console type can be error, warn, log, trace, info
+ * @example
+ * katch.addLevel('MYLEVEL', 123);
+ */
+katch.addLevel = function (level, code) {
+    var consoleType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'log';
+
+
+    if (typeof consoleType !== 'string' || ['log', 'error', 'warn', 'info', 'trace'].indexOf(consoleType) === -1) throw new Error('consoleType is required and must be one of these: error, warn, log, trace or info');
+
+    if (typeof level !== 'string') throw new Error('level name is required and must be a string');
+
+    if (typeof code !== 'number') throw new Error('level code is required and must be a number');
+
+    for (var i in levels) {
+        if (i === level.toUpperCase()) throw new Error('level name already exists');
+        if (levels[i].code === code) throw new Error('level code already exists');
+    }
+
+    for (var _i in katch) {
+        if (_i === level) throw new Error('level name not allowed');
+    }
+
+    levels[level] = {
+        code: code,
+        system: false,
+        console: consoleType
+    };
+
+    // recreate level
+    createLevel();
+};
+
+/**
+ * Remove custom level
+ * @param level {string} level name
+ * @example
+ * katch.removeLevel('MYLEVEL');
+ */
+katch.removeLevel = function (level) {
+    for (var i in levels) {
+        if (levels[i].system && i === level) throw new Error('cannot remove a default level');
+    }
+
+    for (var _i2 in katch) {
+        if (_i2 === level && !levels[level]) throw new Error('level name not allowed');
+    }
+
+    if (typeof levels[level] === 'undefined') throw new Error('level not found');
+
+    delete levels[level];
+
+    // recreate level
+    createLevel();
+};
+
+/**
+ * Return all levels definitions
+ * @function getLevels
+ * @returns {*}
+ */
+katch.getLevels = function () {
+    return levels;
+};
+
+/**
  * katch
  * @constructor
  * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
  * @param opts {object} options object
+ * @example
+ * const katch = require('katch');
+ * katch(config);
+ * katch.on(error, error => {});
  */
 function katch(opts) {
 
@@ -430,7 +602,17 @@ katch.config = defaultConfig;
 
 /**
  * Set config
- * @param opts {Object} configuration options
+ * @function setup
+ * @param opts {object} configuration options
+ * @example
+ * katch.setup({
+ *   console: true,
+ *   logging: true,
+ *   writeFile: {
+ *       prefix: '',
+ *       humanize: true,
+ *       folderPath: './logs'
+ *  });
  */
 katch.setup = function (opts) {
     if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
@@ -440,54 +622,66 @@ katch.setup = function (opts) {
 
 /**
  * Catch error
+ * @function error
  * @param error {Error} error object
- * @param params {Object} optional params object
+ * @param params {object} optional params object
  */
 katch.error = function (error) {
     var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    var logObj = {
-        time: Helpers.getLocaleISODate(),
-        type: 'ERROR',
-        hash: sha256(error.stack),
-        message: error.stack,
-        params: params
-    };
+
     Events.fire('error', error, params);
     Events.fire('type' + error.name, error, params);
 
-    Log.write(logObj, katch.config);
+    if (katch.config.console) console.error(error);
+
+    Log.write({
+        level: 'ERROR',
+        code: levels.ERROR.code,
+        message: error.stack,
+        params: params
+    }, katch.config);
 };
 
 /**
- * Catch error
+ * Catch error, alias of katch.error
+ * @function captureError
  * @param error {Error} error object
- * @param params {Object} optional params object
+ * @param params {object} optional params object
  */
 katch.captureError = katch.error;
 
 /**
  * Log info
- * @param message {String} error object
- * @param params {Object} optional params object
+ * @function info
+ * @param message {string} error object
+ * @param params {object} optional params object
  */
-katch.info = function (message) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    var logObj = {
-        time: Helpers.getLocaleISODate(),
-        type: 'INFO',
-        hash: sha256(message),
-        message: message,
-        params: params
-    };
-    Events.fire('info', message, params);
+/**
+ * Log warn
+ * @function warn
+ * @param message {string} error object
+ * @param params {object} optional params object
+ */
 
-    Log.write(logObj, katch.config);
-};
+/**
+ * Log fatal
+ * @function fatal
+ * @param message {string} error object
+ * @param params {object} optional params object
+ */
+
+/**
+ * Log debug
+ * @function debug
+ * @param message {string} error object
+ * @param params {object} optional params object
+ */
 
 /**
  * Wrapper function
+ * @function wrap
  * @type {function(*, *=)}
  */
 katch.wrap = function (func) {
@@ -502,16 +696,38 @@ katch.wrap = function (func) {
 
 /**
  * Call events
- * @param event {String} event name
+ * @function on
+ * @param event {string} event name
  * @param callback {function} callback function
  */
 katch.on = Events.on;
+
+/**
+ * Catch error from Koa app
+ * @function koa
+ * @example
+ * const app = new Koa();
+ * katch.koa(app);
+ */
+katch.koa = __webpack_require__(11);
+
+/**
+ * Catch error from Express app
+ * @function express
+ * @example
+ * const app = require('express')();
+ * app.get('/', function (req, res) {
+ *      res.send('Hello World!');
+ * });
+ * app.use(katch.express);
+ */
+katch.express = __webpack_require__(14);
 
 module.exports = katch;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -739,7 +955,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 })(undefined);
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -747,6 +963,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var Helpers = __webpack_require__(1);
 var Events = __webpack_require__(2);
+var sha256 = __webpack_require__(9);
 var fs = __webpack_require__(3);
 var os = __webpack_require__(3);
 var Log = {};
@@ -757,6 +974,10 @@ var Log = {};
  * @param config
  */
 Log.write = function (logObj, config) {
+
+    // Add time and hash to log object
+    logObj.time = Helpers.getLocaleISODate();
+    logObj.hash = sha256(logObj.message);
 
     if (Helpers.isBrowser()) {
 
@@ -791,7 +1012,7 @@ Log.write = function (logObj, config) {
         if (config.logging) {
             if (config.writeFile.humanize) {
                 var separator = '------------------------------------------------------------------------------------';
-                fileContent = '[' + logObj.time + '] [' + logObj.type + '] [' + logObj.host + '] [' + logObj.hash + '] \n' + logObj.message + '\n' + separator + '\n';
+                fileContent = '[' + logObj.time + '] [' + logObj.level + '] [' + logObj.code + '] [' + logObj.host + '] [' + logObj.hash + '] \n' + logObj.message + '\n' + separator + '\n';
             } else {
                 fileContent = JSON.stringify(logObj) + '\n';
             }
@@ -812,7 +1033,7 @@ module.exports = Log;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1032,6 +1253,313 @@ function SHA256(s) {
 }
 
 module.exports = SHA256;
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Levels
+ * @type {{FATAL: {code: number, system: boolean, error: boolean}, ERROR: {code: number, system: boolean, error: boolean}, WARN: {code: number, system: boolean, error: boolean}, INFO: {code: number, system: boolean, error: boolean}, DEBUG: {code: number, system: boolean, error: boolean}, TRACE: {code: number, system: boolean, error: boolean}}}
+ */
+module.exports = {
+    FATAL: {
+        code: 101,
+        system: true,
+        console: 'error'
+    },
+    ERROR: {
+        code: 102,
+        system: true,
+        console: 'error'
+    },
+    WARN: {
+        code: 103,
+        system: true,
+        console: 'warn'
+    },
+    INFO: {
+        code: 104,
+        system: true,
+        console: 'info'
+    },
+    DEBUG: {
+        code: 105,
+        system: true,
+        console: 'log'
+    },
+    TRACE: {
+        code: 106,
+        system: true,
+        console: 'trace'
+    }
+};
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(setImmediate) {
+
+/**
+ * Catch error from Koa app
+ * @param app {Object} koa app
+ */
+module.exports = function (app) {
+    app.on('error', function (error) {
+        setImmediate(function () {
+            throw error;
+        });
+    });
+};
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4).setImmediate))
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global, process) {
+
+(function (global, undefined) {
+    "use strict";
+
+    if (global.setImmediate) {
+        return;
+    }
+
+    var nextHandle = 1; // Spec says greater than zero
+    var tasksByHandle = {};
+    var currentlyRunningATask = false;
+    var doc = global.document;
+    var registerImmediate;
+
+    function setImmediate(callback) {
+        // Callback can either be a function or a string
+        if (typeof callback !== "function") {
+            callback = new Function("" + callback);
+        }
+        // Copy function arguments
+        var args = new Array(arguments.length - 1);
+        for (var i = 0; i < args.length; i++) {
+            args[i] = arguments[i + 1];
+        }
+        // Store and register the task
+        var task = { callback: callback, args: args };
+        tasksByHandle[nextHandle] = task;
+        registerImmediate(nextHandle);
+        return nextHandle++;
+    }
+
+    function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+    }
+
+    function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+            case 0:
+                callback();
+                break;
+            case 1:
+                callback(args[0]);
+                break;
+            case 2:
+                callback(args[0], args[1]);
+                break;
+            case 3:
+                callback(args[0], args[1], args[2]);
+                break;
+            default:
+                callback.apply(undefined, args);
+                break;
+        }
+    }
+
+    function runIfPresent(handle) {
+        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+        // So if we're currently running a task, we'll need to delay this invocation.
+        if (currentlyRunningATask) {
+            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+            // "too much recursion" error.
+            setTimeout(runIfPresent, 0, handle);
+        } else {
+            var task = tasksByHandle[handle];
+            if (task) {
+                currentlyRunningATask = true;
+                try {
+                    run(task);
+                } finally {
+                    clearImmediate(handle);
+                    currentlyRunningATask = false;
+                }
+            }
+        }
+    }
+
+    function installNextTickImplementation() {
+        registerImmediate = function registerImmediate(handle) {
+            process.nextTick(function () {
+                runIfPresent(handle);
+            });
+        };
+    }
+
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+        if (global.postMessage && !global.importScripts) {
+            var postMessageIsAsynchronous = true;
+            var oldOnMessage = global.onmessage;
+            global.onmessage = function () {
+                postMessageIsAsynchronous = false;
+            };
+            global.postMessage("", "*");
+            global.onmessage = oldOnMessage;
+            return postMessageIsAsynchronous;
+        }
+    }
+
+    function installPostMessageImplementation() {
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function onGlobalMessage(event) {
+            if (event.source === global && typeof event.data === "string" && event.data.indexOf(messagePrefix) === 0) {
+                runIfPresent(+event.data.slice(messagePrefix.length));
+            }
+        };
+
+        if (global.addEventListener) {
+            global.addEventListener("message", onGlobalMessage, false);
+        } else {
+            global.attachEvent("onmessage", onGlobalMessage);
+        }
+
+        registerImmediate = function registerImmediate(handle) {
+            global.postMessage(messagePrefix + handle, "*");
+        };
+    }
+
+    function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function (event) {
+            var handle = event.data;
+            runIfPresent(handle);
+        };
+
+        registerImmediate = function registerImmediate(handle) {
+            channel.port2.postMessage(handle);
+        };
+    }
+
+    function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function registerImmediate(handle) {
+            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+            var script = doc.createElement("script");
+            script.onreadystatechange = function () {
+                runIfPresent(handle);
+                script.onreadystatechange = null;
+                html.removeChild(script);
+                script = null;
+            };
+            html.appendChild(script);
+        };
+    }
+
+    function installSetTimeoutImplementation() {
+        registerImmediate = function registerImmediate(handle) {
+            setTimeout(runIfPresent, 0, handle);
+        };
+    }
+
+    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+    // Don't get fooled by e.g. browserify environments.
+    if ({}.toString.call(global.process) === "[object process]") {
+        // For Node.js before 0.9
+        installNextTickImplementation();
+    } else if (canUsePostMessage()) {
+        // For non-IE10 modern browsers
+        installPostMessageImplementation();
+    } else if (global.MessageChannel) {
+        // For web workers, where supported
+        installMessageChannelImplementation();
+    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        // For IE 6–8
+        installReadyStateChangeImplementation();
+    } else {
+        // For older browsers
+        installSetTimeoutImplementation();
+    }
+
+    attachTo.setImmediate = setImmediate;
+    attachTo.clearImmediate = clearImmediate;
+})(typeof self === "undefined" ? typeof global === "undefined" ? undefined : global : self);
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13), __webpack_require__(0)))
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var g;
+
+// This works in non-strict mode
+g = function () {
+	return this;
+}();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1, eval)("this");
+} catch (e) {
+	// This works if the window reference is available
+	if ((typeof window === "undefined" ? "undefined" : _typeof(window)) === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(setImmediate) {
+
+/**
+ * Catch error middleware
+ * @param err {Error}
+ * @param req {Object}
+ * @param res {Object}
+ * @param next {Function)
+ */
+module.exports = function (err, req, res, next) {
+  setImmediate(function () {
+    throw err;
+  });
+  next();
+};
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4).setImmediate))
 
 /***/ })
 /******/ ]); 
