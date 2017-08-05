@@ -128,4 +128,23 @@ katch.wrap = ((func, params = {}) => {
  */
 katch.on = Events.on;
 
+/**
+ * Catch error from Koa app
+ * @example
+ * const app = new Koa();
+ * katch.koa(app);
+ */
+katch.koa = require('./framework/koa');
+
+/**
+ * Catch error from Express app
+ * @example
+ * const app = require('express')();
+ * app.get('/', function (req, res) {
+ *      res.send('Hello World!');
+ * });
+ * app.use(katch.express);
+ */
+katch.express = require('./framework/express');
+
 module.exports = katch;
