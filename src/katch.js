@@ -2,6 +2,7 @@ const Helpers = require('./helpers');
 const Log = require('./log');
 const levels = require('./levels');
 const Events = require('./events');
+const Trace = require('./lib/errors');
 
 /**
  * Default options
@@ -67,7 +68,7 @@ katch.log = (...args) => {
  */
 function createLevel() {
     for (let level in levels) {
-        if (level === 'ERROR') continue;
+        if (level === 'ERROR' || level === 'TRACE') continue;
         let methodName = level.toLowerCase();
         katch.log[methodName] = (message, params = {}) => {
 
@@ -220,6 +221,35 @@ katch.log.error = (error, params = {}) => {
 };
 
 /**
+ * Catch trace
+ * @memberOf katch.log
+ * @function error
+ * @param message {string} message
+ * @param params {object} optional params object
+ */
+katch.log.trace = (message, params = {}) => {
+
+    let trace = new Trace(message);
+
+    /**
+     * Throw trace
+     * @fires on#trace
+     */
+    Events.fire('trace', trace, params);
+
+    if (katch.config.console)
+        console.trace(trace);
+
+    Log.write({
+        level: 'TRACE',
+        code: levels.TRACE.code,
+        message: trace.stack,
+        params: params
+    }, katch.config);
+
+};
+
+/**
  * Catch error, alias of katch.log.error
  * @memberOf katch
  * @function captureError
@@ -265,6 +295,14 @@ katch.captureError = katch.log.error;
  *
  * @event on#fatal
  * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Trace event.
+ *
+ * @event on#trace
+ * @property {object} stack object.
  * @property {object} optional params object.
  */
 

@@ -241,8 +241,8 @@ describe('katch', () => {
 
     it('append trace to log', done => {
 
-        katch.on('trace', (message, params) => {
-            if (message === 'hello world') {
+        katch.on('trace', (trace, params) => {
+            if (trace.message === 'hello world') {
                 console.log(params);
                 done();
             }

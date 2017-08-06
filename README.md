@@ -101,55 +101,77 @@ katch.on('error', (error, params) => {
 ```
 
 #### Append to log
+
+Katch was created to capture all the errors in an app but can also be used as a logger
+
 ```javascript
+
+// Info
 katch.log.info('A log message', {custom: 1234});
 
 katch.on('info', (message, params) => {
     console.log(message, params);
 });
 
+// Debug
 katch.log.debug('A debug message', {custom: 1234});
 
 katch.on('debug', (message, params) => {
     console.log(message, params);
 });
 
+// Warn
 katch.log.warn('A log message', {custom: 1234});
 
 katch.on('warn', (message, params) => {
     console.log(message, params);
 });
 
+// Fatal
 katch.log.fatal('A log message', {custom: 1234});
 
 katch.on('fatal', (message, params) => {
     console.log(message, params);
 });
 
+// Error
 katch.log.error(new Error('my error'), {custom: 1234});
 
 katch.on('error', (error, params) => {
     console.log(error, params);
 });
 
+// Trace
 katch.log.trace('trace', {custom: 1234});
 
-katch.on('trace', (message, params) => {
-    console.log(message, params);
+katch.on('trace', (trace, params) => {
+    console.log(trace, params);
 });
 ```
 
 #### Log levels
 
-Name | Code | Description
--|-|-
-FATAL | 101 |  
-ERROR | 102 |  
-WARN | 103 |  
-INFO | 104 |  
-DEBUG | 105 |  
-TRACE | 106 |  
+Name | Code 
+-|-
+FATAL | 101 
+ERROR | 102 
+WARN | 103 
+INFO | 104 
+DEBUG | 105  
+TRACE | 106  
 
+#### Add custom level
+```javascript
+katch.addLevel('MYLEVEL', '123');
+katch.log.MYLEVEL('hello level', {myParams: 'wow'});
+katch.on('MYLEVEL', (message) => {
+    console.log(message);
+});
+```
+#### Remove custom level
+```javascript
+katch.removeLevel('MYLEVEL');
+```
 #### Log event
 
 Every invoked

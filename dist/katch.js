@@ -415,7 +415,7 @@ exports._unrefActive = exports.active = function (item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(12);
+__webpack_require__(13);
 exports.setImmediate = setImmediate;
 exports.clearImmediate = clearImmediate;
 
@@ -441,6 +441,7 @@ var Helpers = __webpack_require__(1);
 var Log = __webpack_require__(8);
 var levels = __webpack_require__(10);
 var Events = __webpack_require__(2);
+var Trace = __webpack_require__(11);
 
 /**
  * Default options
@@ -510,7 +511,7 @@ katch.log = function () {
  */
 function createLevel() {
     var _loop = function _loop(level) {
-        if (level === 'ERROR') return 'continue';
+        if (level === 'ERROR' || level === 'TRACE') return 'continue';
         var methodName = level.toLowerCase();
         katch.log[methodName] = function (message) {
             var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -664,12 +665,33 @@ katch.log.error = function (error) {
 };
 
 /**
- * Error event.
- *
- * @event on#error
- * @property {Error} error - object error.
- * @property {object} optional params object.
+ * Catch trace
+ * @memberOf katch.log
+ * @function error
+ * @param message {string} message
+ * @param params {object} optional params object
  */
+katch.log.trace = function (message) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+
+    var trace = new Trace(message);
+
+    /**
+     * Throw trace
+     * @fires on#trace
+     */
+    Events.fire('trace', trace, params);
+
+    if (katch.config.console) console.trace(trace);
+
+    Log.write({
+        level: 'TRACE',
+        code: levels.TRACE.code,
+        message: trace.stack,
+        params: params
+    }, katch.config);
+};
 
 /**
  * Catch error, alias of katch.log.error
@@ -679,6 +701,54 @@ katch.log.error = function (error) {
  * @param params {object} optional params object
  */
 katch.captureError = katch.log.error;
+
+/**
+ * Error event.
+ *
+ * @event on#error
+ * @property {Error} error - object error.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Info event.
+ *
+ * @event on#info
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Warn event.
+ *
+ * @event on#warn
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Debug event.
+ *
+ * @event on#debug
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Fatal event.
+ *
+ * @event on#fatal
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Trace event.
+ *
+ * @event on#trace
+ * @property {object} stack object.
+ * @property {object} optional params object.
+ */
 
 /**
  * Log info
@@ -737,27 +807,32 @@ katch.wrap = function (func) {
 katch.on = Events.on;
 
 /**
+ * @namespace katch.from
+ */
+katch.from = {};
+
+/**
  * Catch error from Koa app
- * @memberOf katch
+ * @memberOf katch.from
  * @function koa
  * @example
  * const app = new Koa();
- * katch.koa(app);
+ * katch.from.koa(app);
  */
-katch.koa = __webpack_require__(11);
+katch.from.koa = __webpack_require__(12);
 
 /**
  * Catch error from Express app
- * @memberOf katch
+ * @memberOf katch.from
  * @function express
  * @example
  * const app = require('express')();
  * app.get('/', function (req, res) {
  *      res.send('Hello World!');
  * });
- * app.use(katch.express);
+ * app.use(katch.from.express);
  */
-katch.express = __webpack_require__(14);
+katch.from.express = __webpack_require__(15);
 
 module.exports = katch;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
@@ -1339,6 +1414,77 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ExtendableError = function (_Error) {
+    _inherits(ExtendableError, _Error);
+
+    function ExtendableError() {
+        var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+        _classCallCheck(this, ExtendableError);
+
+        // extending Error is weird and does not propagate `message`
+        var _this = _possibleConstructorReturn(this, (ExtendableError.__proto__ || Object.getPrototypeOf(ExtendableError)).call(this, message));
+
+        Object.defineProperty(_this, 'message', {
+            configurable: true,
+            enumerable: false,
+            value: message,
+            writable: true
+        });
+
+        Object.defineProperty(_this, 'name', {
+            configurable: true,
+            enumerable: false,
+            value: _this.constructor.name,
+            writable: true
+        });
+
+        if (Error.hasOwnProperty('captureStackTrace')) {
+            Error.captureStackTrace(_this, _this.constructor);
+            return _possibleConstructorReturn(_this);
+        }
+
+        Object.defineProperty(_this, 'stack', {
+            configurable: true,
+            enumerable: false,
+            value: new Error(message).stack,
+            writable: true
+        });
+        return _this;
+    }
+
+    return ExtendableError;
+}(Error);
+
+var Trace = function (_ExtendableError) {
+    _inherits(Trace, _ExtendableError);
+
+    function Trace() {
+        var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Trace';
+
+        _classCallCheck(this, Trace);
+
+        return _possibleConstructorReturn(this, (Trace.__proto__ || Object.getPrototypeOf(Trace)).call(this, message));
+    }
+
+    return Trace;
+}(ExtendableError);
+
+module.exports = Trace;
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(setImmediate) {
 
 /**
@@ -1355,7 +1501,7 @@ module.exports = function (app) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4).setImmediate))
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1543,10 +1689,10 @@ module.exports = function (app) {
     attachTo.setImmediate = setImmediate;
     attachTo.clearImmediate = clearImmediate;
 })(typeof self === "undefined" ? typeof global === "undefined" ? undefined : global : self);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13), __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14), __webpack_require__(0)))
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1576,7 +1722,7 @@ try {
 module.exports = g;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
