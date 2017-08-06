@@ -1,5 +1,5 @@
 <div align="center">
-
+<br/><br/>
 <img width="320" src="https://raw.githubusercontent.com/fabioricali/katch/develop/extra/logo-katch.png" title="katch"/>
 <br/><br/>
 Simple module that capture errors and log it. Works both server and browser.
@@ -81,7 +81,7 @@ try {
     foo();
     bar();
 } catch (e) {
-    katch.error(e, {
+    katch.log.error(e, {
         customParam: 'hello horror'
     });
 }
@@ -100,14 +100,55 @@ katch.on('error', (error, params) => {
 });
 ```
 
-#### Append info to log
+#### Append to log
 ```javascript
-katch.info('A log message', {custom: 1234});
+katch.log.info('A log message', {custom: 1234});
 
 katch.on('info', (message, params) => {
     console.log(message, params);
 });
+
+katch.log.debug('A debug message', {custom: 1234});
+
+katch.on('debug', (message, params) => {
+    console.log(message, params);
+});
+
+katch.log.warn('A log message', {custom: 1234});
+
+katch.on('warn', (message, params) => {
+    console.log(message, params);
+});
+
+katch.log.fatal('A log message', {custom: 1234});
+
+katch.on('fatal', (message, params) => {
+    console.log(message, params);
+});
+
+katch.log.error(new Error('my error'), {custom: 1234});
+
+katch.on('error', (error, params) => {
+    console.log(error, params);
+});
+
+katch.log.trace('trace', {custom: 1234});
+
+katch.on('trace', (message, params) => {
+    console.log(message, params);
+});
 ```
+
+#### Log levels
+
+Name | Code | Description
+-|-|-
+FATAL | 101 |  
+ERROR | 102 |  
+WARN | 103 |  
+INFO | 104 |  
+DEBUG | 105 |  
+TRACE | 106 |  
 
 #### Log event
 
@@ -119,7 +160,7 @@ katch.on('log', obj => {
     // obj
     { 
         time: '2017-08-02 19:01:46',
-        level: 'INFO',
+        level: 'INFO', // INFO, WARN, FATAL, ERROR, DEBUG, ...custom
         code: 104,
         hash: 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9',
         message: 'hello world',
@@ -133,10 +174,30 @@ katch.on('log', obj => {
 });
 ```
 
+### Catch error from Koa and Express
+
+- Koa
+    ```javascript
+    const app = new Koa();
+    katch.from.koa(app);
+    app.use(ctx => {
+      throw new Error('koa error');
+    });
+    ```
+- Express
+    ```javascript
+    const app = require('express')();
+    app.get('/', function (req, res) {
+        throw new Error('express error');
+    });
+    // after all routes
+    app.use(katch.from.express);
+    ```
+
 ### Configuration
 ```javascript
 const config = {
-    cosole: true,
+    console: true, // outputs in console
     logging: true, // if false disable writing log. The event "log" will be invoked anyway 
     writeFile: { // only server environment
         prefix: '', // add a prefix to filename

@@ -54,9 +54,11 @@ describe('katch koa', function() {
 
         const app = new Koa();
 
-        katch.koa(app);
+        katch.from.koa(app);
+
         // response
         app.use(ctx => {
+            console.log(ctx);
             throw new Error('koa error');
         });
 

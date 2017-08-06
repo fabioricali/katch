@@ -169,7 +169,7 @@ describe('katch', () => {
                 done();
         });
 
-        katch.error(new ReferenceError('capture error 3'));
+        katch.log.error(new ReferenceError('capture error 3'));
     });
 
     it('katch.wrap', done => {
@@ -236,7 +236,7 @@ describe('katch', () => {
             }
         });
 
-        katch.info('hello world', {foo: 'bar'});
+        katch.log.info('hello world', {foo: 'bar'});
     });
 
     it('append trace to log', done => {
@@ -248,7 +248,7 @@ describe('katch', () => {
             }
         });
 
-        katch.trace('hello world', {foo: 'bar'});
+        katch.log.trace('hello world', {foo: 'bar'});
     });
 
     it('append warn to log', done => {
@@ -260,7 +260,7 @@ describe('katch', () => {
             }
         });
 
-        katch.warn('hello world', {foo: 'bar'});
+        katch.log.warn('hello world', {foo: 'bar'});
     });
 
     it('append debug to log', done => {
@@ -272,7 +272,7 @@ describe('katch', () => {
             }
         });
 
-        katch.debug('hello world', {foo: 'bar'});
+        katch.log.debug('hello world', {foo: 'bar'});
     });
 
     it('append fatal to log', done => {
@@ -285,7 +285,20 @@ describe('katch', () => {
             }
         });
 
-        katch.fatal('hello world', {foo: 'bar'});
+        katch.log.fatal('hello world', {foo: 'bar'});
+    });
+
+    it('append info to log by constructor', done => {
+
+        katch.on('info', (message, params) => {
+            if (message === 'hello world 2') {
+                console.log(message);
+                console.log(params);
+                done();
+            }
+        });
+
+        katch.log('hello world 2', {foo: 'bar'});
     });
 
     it('addLevel ok', done => {
@@ -300,7 +313,7 @@ describe('katch', () => {
 
         katch.addLevel('mycustom', 123);
 
-        katch.mycustom('hello world', {foo: 'bar'});
+        katch.log.mycustom('hello world', {foo: 'bar'});
     });
 
     it('addLevel level exists', done => {

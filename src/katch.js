@@ -5,7 +5,7 @@ const Events = require('./events');
 
 /**
  * Default options
- * @type {{console: boolean, logging: boolean, writeFile: {prefix: string, humanize: boolean, folderPath: string}}}
+ * @ignore
  */
 const defaultConfig = {
     console: true,
@@ -18,15 +18,58 @@ const defaultConfig = {
 };
 
 /**
- * Create level from levels object
+ * katch
+ * @namespace
+ * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
+ * @param opts {object} options object
+ * @example
+ * const katch = require('katch');
+ * katch(config);
+ * katch.on(error, error => {});
+ */
+function katch(opts) {
+
+    katch.setup(opts);
+
+    if (Helpers.isBrowser()) {
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            katch.log.error(error, {
+                message: msg,
+                url: url,
+                lineNo: lineNo,
+                columnNo: columnNo
+            });
+        }
+    } else {
+        process.on('uncaughtException', katch.log.error);
+    }
+
+    return katch;
+}
+
+/**
+ * Config params
+ * @type {{}}
+ */
+katch.config = defaultConfig;
+
+/**
+ * @namespace katch.log
+ */
+katch.log = (...args) => {
+    katch.log.info.apply(katch, args);
+};
+
+/**
+ * Create level from levels object*
  * @function createLevel
- * @private
+ * @ignore
  */
 function createLevel() {
     for (let level in levels) {
         if (level === 'ERROR') continue;
         let methodName = level.toLowerCase();
-        katch[methodName] = (message, params = {}) => {
+        katch.log[methodName] = (message, params = {}) => {
 
             Events.fire(methodName, message, params);
 
@@ -50,6 +93,7 @@ createLevel();
 
 /**
  * Add custom level
+ * @memberOf katch
  * @function addLevel
  * @param level {string} level name
  * @param code {number} level code
@@ -75,7 +119,7 @@ katch.addLevel = (level, code, consoleType = 'log') => {
             throw new Error('level code already exists');
     }
 
-    for(let i in katch) {
+    for(let i in katch.log) {
         if(i === level)
             throw new Error('level name not allowed');
     }
@@ -92,6 +136,8 @@ katch.addLevel = (level, code, consoleType = 'log') => {
 
 /**
  * Remove custom level
+ * @memberOf katch
+ * @function removeLevel
  * @param level {string} level name
  * @example
  * katch.removeLevel('MYLEVEL');
@@ -102,7 +148,7 @@ katch.removeLevel = (level) => {
             throw new Error('cannot remove a default level');
     }
 
-    for(let i in katch) {
+    for(let i in katch.log) {
         if(i === level && !levels[level])
             throw new Error('level name not allowed');
     }
@@ -118,51 +164,17 @@ katch.removeLevel = (level) => {
 
 /**
  * Return all levels definitions
+ * @memberOf katch
  * @function getLevels
- * @returns {*}
+ * @returns {{FATAL: {code: number, system: boolean, error: boolean}, ERROR: {code: number, system: boolean, error: boolean}, WARN: {code: number, system: boolean, error: boolean}, INFO: {code: number, system: boolean, error: boolean}, DEBUG: {code: number, system: boolean, error: boolean}, TRACE: {code: number, system: boolean, error: boolean}}}
  */
 katch.getLevels = ()=> {
     return levels;
 };
 
 /**
- * katch
- * @constructor
- * @see https://blog.sentry.io/2016/01/04/client-javascript-reporting-window-onerror.html
- * @param opts {object} options object
- * @example
- * const katch = require('katch');
- * katch(config);
- * katch.on(error, error => {});
- */
-function katch(opts) {
-
-    katch.setup(opts);
-
-    if (Helpers.isBrowser()) {
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
-            katch.error(error, {
-                message: msg,
-                url: url,
-                lineNo: lineNo,
-                columnNo: columnNo
-            });
-        }
-    } else {
-        process.on('uncaughtException', katch.error);
-    }
-
-    return katch;
-}
-
-/**
- * Config params
- * @type {{}}
- */
-katch.config = defaultConfig;
-
-/**
  * Set config
+ * @memberOf katch
  * @function setup
  * @param opts {object} configuration options
  * @example
@@ -183,12 +195,16 @@ katch.setup = (opts) => {
 
 /**
  * Catch error
+ * @memberOf katch.log
  * @function error
  * @param error {Error} error object
  * @param params {object} optional params object
  */
-katch.error = (error, params = {}) => {
-
+katch.log.error = (error, params = {}) => {
+    /**
+     * Throw error
+     * @fires on#error
+     */
     Events.fire('error', error, params);
     Events.fire(`type${error.name}`, error, params);
 
@@ -204,15 +220,57 @@ katch.error = (error, params = {}) => {
 };
 
 /**
- * Catch error, alias of katch.error
+ * Catch error, alias of katch.log.error
+ * @memberOf katch
  * @function captureError
  * @param error {Error} error object
  * @param params {object} optional params object
  */
-katch.captureError = katch.error;
+katch.captureError = katch.log.error;
+
+/**
+ * Error event.
+ *
+ * @event on#error
+ * @property {Error} error - object error.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Info event.
+ *
+ * @event on#info
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Warn event.
+ *
+ * @event on#warn
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Debug event.
+ *
+ * @event on#debug
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
+
+/**
+ * Fatal event.
+ *
+ * @event on#fatal
+ * @property {string} message.
+ * @property {object} optional params object.
+ */
 
 /**
  * Log info
+ * @memberOf katch.log
  * @function info
  * @param message {string} error object
  * @param params {object} optional params object
@@ -220,6 +278,7 @@ katch.captureError = katch.error;
 
 /**
  * Log warn
+ * @memberOf katch.log
  * @function warn
  * @param message {string} error object
  * @param params {object} optional params object
@@ -227,6 +286,7 @@ katch.captureError = katch.error;
 
 /**
  * Log fatal
+ * @memberOf katch.log
  * @function fatal
  * @param message {string} error object
  * @param params {object} optional params object
@@ -234,6 +294,7 @@ katch.captureError = katch.error;
 
 /**
  * Log debug
+ * @memberOf katch.log
  * @function debug
  * @param message {string} error object
  * @param params {object} optional params object
@@ -241,6 +302,7 @@ katch.captureError = katch.error;
 
 /**
  * Wrapper function
+ * @memberOf katch
  * @function wrap
  * @type {function(*, *=)}
  */
@@ -261,24 +323,31 @@ katch.wrap = ((func, params = {}) => {
 katch.on = Events.on;
 
 /**
+ * @namespace katch.from
+ */
+katch.from = {};
+
+/**
  * Catch error from Koa app
+ * @memberOf katch.from
  * @function koa
  * @example
  * const app = new Koa();
- * katch.koa(app);
+ * katch.from.koa(app);
  */
-katch.koa = require('./framework/koa');
+katch.from.koa = require('./framework/koa');
 
 /**
  * Catch error from Express app
+ * @memberOf katch.from
  * @function express
  * @example
  * const app = require('express')();
  * app.get('/', function (req, res) {
  *      res.send('Hello World!');
  * });
- * app.use(katch.express);
+ * app.use(katch.from.express);
  */
-katch.express = require('./framework/express');
+katch.from.express = require('./framework/express');
 
 module.exports = katch;

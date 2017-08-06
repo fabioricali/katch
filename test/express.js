@@ -54,14 +54,13 @@ describe('katch express', function() {
 
         const app = require('express')();
 
-        katch.koa(app);
-
         // response
         app.get('/', (req, res) => {
+            console.log(req);
             throw new Error('express error');
         });
 
-        app.use(katch.express);
+        app.use(katch.from.express);
 
         app.listen(port);
         request(host);
