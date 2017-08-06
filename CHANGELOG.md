@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Express support
 - Now is possible add or remove custom log levels
 - Property `code` in log object
-- New log type: `katch.warn`, `katch.debug`, `katch.trace`, `katch.fatal`
+- New log type: `katch.log.warn`, `katch.log.debug`, `katch.log.trace`, `katch.log.fatal`
 
 ### Changed
 - In log object changed property `type` to `level`
