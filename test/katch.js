@@ -225,6 +225,11 @@ describe('katch', () => {
         }, {
             custom: 'horror'
         });
+
+        katch.log.info('info message');
+        katch.log.warn('wanr message');
+        katch.log.debug('debug message');
+        katch.log.trace('trace message');
     });
 
     it('append info to log', done => {

@@ -67,6 +67,20 @@ katch.on('error', (error, params) => {
     console.log(error, params);
 });
 ```
+### Log format
+```
+{"level":"ERROR","code":102,"message":"ReferenceError: func4 is not defined... ecc...ecc...","params":{"custom":"horror"},"time":"2017-08-06 13:39:41","hash":"0bc33304126ab9051e585f931074175597e8fb6f5e721f23f4e9804d42c32173","host":"Zallo","pid":9972,"platform":"win32"}
+{"level":"INFO","code":104,"message":"info message","params":{},"time":"2017-08-06 22:19:13","hash":"86677fb54af6bb0d646af35ae56afe35275290c046959a27ecce3171f680b61e","host":"Zallo","pid":9344,"platform":"win32"}
+{"level":"WARN","code":103,"message":"wanr message","params":{},"time":"2017-08-06 22:19:13","hash":"ffb322974b101dc063ca0b150e4d2a817ce0e58e362bac149caf0791018c0171","host":"Zallo","pid":9344,"platform":"win32"}
+{"level":"DEBUG","code":105,"message":"debug message","params":{},"time":"2017-08-06 22:19:13","hash":"dbb69a4d04a33f4b13f90dd3a068d9c358d33f210a98e3c07e27a24f3dfe7d51","host":"Zallo","pid":9344,"platform":"win32"}
+{"level":"TRACE","code":106,"message":"Trace: trace message... ecc...ecc...","params":{},"time":"2017-08-06 22:19:13","hash":"7a2625faa021efb2a6a9a7fcd4ccbef26c40e98cd400938775248abb12ebd8df","host":"Zallo","pid":9344,"platform":"win32"}
+```
+### Log archive
+
+- **Server**
+    - The log files are saved by default in the logs folder with the file name of the current day
+- **Browser**
+    - The log are saved in localStorage with key name `katch`
 
 #### Capture manually
 
