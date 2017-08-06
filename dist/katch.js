@@ -1,4 +1,4 @@
-// [AIV]  katch Build version: 1.0.0  
+// [AIV]  katch Build version: 1.0.1  
  var katch =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
