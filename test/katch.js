@@ -339,6 +339,24 @@ describe('katch', () => {
         }
     });
 
+    it('addLevel level bad level type', done => {
+        try {
+            katch.addLevel(123);
+        } catch (e) {
+            console.log(e);
+            done();
+        }
+    });
+
+    it('addLevel level bad code type', done => {
+        try {
+            katch.addLevel('info321', '34');
+        } catch (e) {
+            console.log(e);
+            done();
+        }
+    });
+
     it('addLevel level not allowed', done => {
         try {
             katch.addLevel('wrap', 123);
@@ -377,6 +395,16 @@ describe('katch', () => {
         } catch (e) {
             console.log(e);
             if(e.message === 'level name not allowed')
+                done();
+        }
+    });
+
+    it('removeLevel level system 2', done => {
+        try {
+            katch.removeLevel('ERROR');
+        } catch (e) {
+            console.log(e);
+            if(e.message === 'cannot remove a default level')
                 done();
         }
     });
