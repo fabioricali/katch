@@ -2,6 +2,7 @@ const Helpers = require('./helpers');
 const Events = require('./events');
 const sha256 = require('./lib/sha256');
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 const os = require('os');
 const Log = {};
 
@@ -58,8 +59,7 @@ Log.write = (logObj, config) => {
             If writeFile is falsy do not write
              */
             if (config.writeFile) {
-                if (!fs.existsSync(folderPath))
-                    fs.mkdirSync(folderPath);
+                mkdirp.sync(folderPath);
                 fs.appendFileSync(`${folderPath}/${prefix}${filename}`, fileContent);
             }
         }

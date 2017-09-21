@@ -47,6 +47,7 @@
         "url": "https://github.com/fabioricali/katch"
     },
     "dependencies": {
-        "dateformat": "^2.0.0"
+        "dateformat": "^2.0.0",
+        "mkdirp": "^0.5.1"
     }
 }

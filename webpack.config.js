@@ -32,6 +32,7 @@ module.exports = {
         }],
     },
     node: {
+        mkdirp: 'empty',
         fs: 'empty',
         os: 'empty'
     },
