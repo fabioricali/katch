@@ -165,14 +165,14 @@ katch.on('trace', (trace, params) => {
 
 #### Log levels
 
-Name | Code 
--|-
-FATAL | 101 
-ERROR | 102 
-WARN | 103 
-INFO | 104 
-DEBUG | 105  
-TRACE | 106  
+| Name | Code |
+| - | - |
+| FATAL | 101 |
+| ERROR | 102 |
+| WARN | 103 |
+| INFO | 104 |
+| DEBUG | 105 | 
+| TRACE | 106 |  
 
 #### Add custom level
 ```javascript

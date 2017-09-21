@@ -145,15 +145,18 @@ katch.addLevel = (level, code, consoleType = 'log') => {
  */
 katch.removeLevel = (level) => {
     for(let i in levels) {
+        /* istanbul ignore else  */
         if(levels[i].system && i === level)
             throw new Error('cannot remove a default level');
     }
 
     for(let i in katch.log) {
+        /* istanbul ignore else  */
         if(i === level && !levels[level])
             throw new Error('level name not allowed');
     }
 
+    /* istanbul ignore else  */
     if(typeof levels[level] === 'undefined')
         throw new Error('level not found');
 
@@ -189,6 +192,7 @@ katch.getLevels = ()=> {
  * });
  */
 katch.setup = (opts) => {
+    /* istanbul ignore else  */
     if (typeof opts === 'object') {
         katch.config = Helpers.defaults(opts, defaultConfig);
     }
@@ -209,6 +213,7 @@ katch.log.error = (error, params = {}) => {
     Events.fire('error', error, params);
     Events.fire(`type${error.name}`, error, params);
 
+    /* istanbul ignore else  */
     if (katch.config.console)
         console.error(error);
 
@@ -237,6 +242,7 @@ katch.log.trace = (message, params = {}) => {
      */
     Events.fire('trace', trace, params);
 
+    /* istanbul ignore else  */
     if (katch.config.console)
         console.trace(trace);
 

@@ -25,6 +25,7 @@ Log.write = (logObj, config) => {
             let logDayKey = Helpers.getLocaleISODate('date');
             let logAtDay = JSON.parse(localStorage.getItem(logName)) || {};
 
+            /* istanbul ignore else  */
             if (!logAtDay[logDayKey])
                 logAtDay[logDayKey] = [];
 
@@ -48,6 +49,7 @@ Log.write = (logObj, config) => {
         logObj.pid = process.pid;
         logObj.platform = process.platform;
 
+        /* istanbul ignore else  */
         if(config.logging) {
             if (config.writeFile.humanize) {
                 let separator = '------------------------------------------------------------------------------------';
@@ -58,6 +60,7 @@ Log.write = (logObj, config) => {
             /*
             If writeFile is falsy do not write
              */
+            /* istanbul ignore else  */
             if (config.writeFile) {
                 mkdirp.sync(folderPath);
                 fs.appendFileSync(`${folderPath}/${prefix}${filename}`, fileContent);
