@@ -1,4 +1,4 @@
-// [AIV]  katch Build version: 1.0.1  
+// [AIV]  katch Build version: 1.0.2  
  var katch =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -591,13 +591,16 @@ katch.addLevel = function (level, code) {
  */
 katch.removeLevel = function (level) {
     for (var i in levels) {
+        /* istanbul ignore else  */
         if (levels[i].system && i === level) throw new Error('cannot remove a default level');
     }
 
     for (var _i2 in katch.log) {
+        /* istanbul ignore else  */
         if (_i2 === level && !levels[level]) throw new Error('level name not allowed');
     }
 
+    /* istanbul ignore else  */
     if (typeof levels[level] === 'undefined') throw new Error('level not found');
 
     delete levels[level];
@@ -632,6 +635,7 @@ katch.getLevels = function () {
  * });
  */
 katch.setup = function (opts) {
+    /* istanbul ignore else  */
     if ((typeof opts === 'undefined' ? 'undefined' : _typeof(opts)) === 'object') {
         katch.config = Helpers.defaults(opts, defaultConfig);
     }
@@ -654,6 +658,7 @@ katch.log.error = function (error) {
     Events.fire('error', error, params);
     Events.fire('type' + error.name, error, params);
 
+    /* istanbul ignore else  */
     if (katch.config.console) console.error(error);
 
     Log.write({
@@ -683,6 +688,7 @@ katch.log.trace = function (message) {
      */
     Events.fire('trace', trace, params);
 
+    /* istanbul ignore else  */
     if (katch.config.console) console.trace(trace);
 
     Log.write({
@@ -1099,6 +1105,7 @@ Log.write = function (logObj, config) {
             var logDayKey = Helpers.getLocaleISODate('date');
             var logAtDay = JSON.parse(localStorage.getItem(logName)) || {};
 
+            /* istanbul ignore else  */
             if (!logAtDay[logDayKey]) logAtDay[logDayKey] = [];
 
             logAtDay[logDayKey].push(logObj);
@@ -1121,6 +1128,7 @@ Log.write = function (logObj, config) {
         logObj.pid = process.pid;
         logObj.platform = process.platform;
 
+        /* istanbul ignore else  */
         if (config.logging) {
             if (config.writeFile.humanize) {
                 var separator = '------------------------------------------------------------------------------------';
@@ -1131,6 +1139,7 @@ Log.write = function (logObj, config) {
             /*
             If writeFile is falsy do not write
              */
+            /* istanbul ignore else  */
             if (config.writeFile) {
                 mkdirp.sync(folderPath);
                 fs.appendFileSync(folderPath + '/' + prefix + filename, fileContent);
